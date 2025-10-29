@@ -53,13 +53,22 @@ pub fn lg_recur(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let expanded = quote! {
         fn #fn_name(#fn_args) #fn_return_type {
             fn inner(#fn_args, __lg_recur_level: usize) #fn_return_type {
+                let mut args_str = String::new();
+                #(
+                    if !args_str.is_empty() {
+                        args_str.push_str(", ");
+                    }
+                    args_str.push_str(&format!("{}={:?}", stringify!(#arg_names), #arg_names));
+                )*
+
                 if __lg_recur_level == 0 {
-                    eprintln!("{}(arg=arg)", stringify!(#fn_name));
+                    eprintln!("{}({})", stringify!(#fn_name), args_str);
                 } else {
                     eprintln!("{}", "│".repeat(__lg_recur_level));
                     eprintln!(
-                        "{}┬(arg=arg)",
-                        "│".repeat(__lg_recur_level - 1) + "├"
+                        "{}┬({})",
+                        "│".repeat(__lg_recur_level - 1) + "├",
+                        args_str
                     );
                 }
 
