@@ -8,7 +8,7 @@ mod codegen;
 mod visitor;
 
 use proc_macro::TokenStream;
-use syn::{ItemFn, parse_macro_input};
+use syn::{parse_macro_input, ItemFn};
 
 use args::MacroArgs;
 use codegen::CodeGenerator;

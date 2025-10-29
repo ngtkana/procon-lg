@@ -6,7 +6,11 @@ fn gcd(mut x: u32, mut y: u32) -> u32 {
         std::mem::swap(&mut x, &mut y);
     }
 
-    if y == 0 { x } else { gcd(y, x % y) }
+    if y == 0 {
+        x
+    } else {
+        gcd(y, x % y)
+    }
 }
 
 fn main() {

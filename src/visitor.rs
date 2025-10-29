@@ -1,7 +1,7 @@
 use quote::ToTokens;
 use syn::{
-    Expr, ExprCall, ExprPath,
     visit_mut::{self, VisitMut},
+    Expr, ExprCall, ExprPath,
 };
 
 /// Visitor for AST transformation
@@ -14,14 +14,15 @@ pub struct Visitor<'a> {
 impl VisitMut for Visitor<'_> {
     /// Transform recursive calls
     fn visit_expr_call_mut(&mut self, call: &mut ExprCall) {
-        if let Expr::Path(path) = &*call.func
-            && path.path.is_ident(self.fn_name)
-        {
-            let level_arg = syn::parse_quote!(__lg_recur_level + 1);
-            call.args.push(level_arg);
+        #[allow(clippy::collapsible_if)]
+        if let Expr::Path(path) = &*call.func {
+            if path.path.is_ident(self.fn_name) {
+                let level_arg = syn::parse_quote!(__lg_recur_level + 1);
+                call.args.push(level_arg);
 
-            let inner_path: ExprPath = syn::parse_quote!(__procon_lg_recurse);
-            call.func = Box::new(Expr::Path(inner_path));
+                let inner_path: ExprPath = syn::parse_quote!(__procon_lg_recurse);
+                call.func = Box::new(Expr::Path(inner_path));
+            }
         }
 
         syn::visit_mut::visit_expr_call_mut(self, call);
@@ -109,7 +110,7 @@ impl Visitor<'_> {}
 mod tests {
     use super::*;
     use quote::quote;
-    use syn::{Block, parse_quote};
+    use syn::{parse_quote, Block};
 
     #[test]
     fn test_recursive_call() {
