@@ -34,27 +34,22 @@ impl VisitMut for PrintlnRewriter {
         match path.as_str() {
             "println" => {
                 *mac = syn::parse_quote! {
-                    println!("[HEADER] {}", format_args!(#tokens))
+                    println!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
                 };
             }
             "eprintln" => {
                 *mac = syn::parse_quote! {
-                    eprintln!("[HEADER] {}", format_args!(#tokens))
+                    eprintln!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
                 };
             }
             "print" => {
                 *mac = syn::parse_quote! {
-                    print!("[HEADER] {}", format_args!(#tokens))
+                    print!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
                 };
             }
             "eprint" => {
                 *mac = syn::parse_quote! {
-                    eprint!("[HEADER] {}", format_args!(#tokens))
-                };
-            }
-            "dbg" => {
-                *mac = syn::parse_quote! {
-                    println!("[HEADER] dbg: {:?}", #tokens)
+                    eprint!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
                 };
             }
             _ => {}

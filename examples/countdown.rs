@@ -9,7 +9,6 @@ fn countdown(count: u32) {
         eprintln!("count = {count} (debug)");
         print!("count = {count} (print)\n");
         eprint!("count = {count} (eprint)\n");
-        dbg!(&count);
         countdown(count - 1);
     }
 }
