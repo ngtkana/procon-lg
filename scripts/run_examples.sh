@@ -255,10 +255,14 @@ main() {
         log_info "Running in dry-run mode (no files will be updated)"
     fi
     
-    # Process each example
+    # Process each example (disable set -e temporarily to process all examples)
+    set +e
     for example in "${examples[@]}"; do
-        process_example "$example"
+        if ! process_example "$example"; then
+            log_error "Failed processing example: $example"
+        fi
     done
+    set -e
     
     # Report results
     report_results
