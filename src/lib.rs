@@ -110,7 +110,7 @@ pub fn lg_recur(_attr: TokenStream, item: TokenStream) -> TokenStream {
             if let FnArg::Typed(pat_type) = arg {
                 let mut new_pat_type = pat_type.clone();
                 if let Pat::Ident(ref mut pat_ident) = *new_pat_type.pat {
-                    pat_ident.mutability = None; // Remove mut keyword
+                    pat_ident.mutability = None; // Remove mut keyword of outer-fn
                 }
                 FnArg::Typed(new_pat_type)
             } else {
@@ -138,15 +138,19 @@ pub fn lg_recur(_attr: TokenStream, item: TokenStream) -> TokenStream {
                 if __lg_recur_level == 0 {
                     eprintln!("{}({})", stringify!(#fn_name), args_str);
                 } else {
-                    eprintln!("{}", "│".repeat(__lg_recur_level));
                     eprintln!(
-                        "{}┬({})",
-                        "│".repeat(__lg_recur_level - 1) + "├",
+                        "{}├┬({})",
+                        "│".repeat(__lg_recur_level - 1),
                         args_str
                     );
                 }
 
                 let ans = #fn_block;
+
+                eprintln!(
+                    "{}└ {ans}",
+                    "│".repeat(__lg_recur_level),
+                );
 
                 ans
             }

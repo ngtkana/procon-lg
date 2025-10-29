@@ -11,8 +11,6 @@ fn sum(a: &[u32]) -> u32 {
             sum(a0) + sum(a1)
         }
     };
-    eprintln!();
-    eprintln!("ans = {ans}");
     ans
 }
 
