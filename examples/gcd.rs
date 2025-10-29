@@ -1,4 +1,4 @@
-use lg_recur::lg_recur;
+use procon_lg::lg_recur;
 
 #[lg_recur]
 fn gcd(mut x: u32, mut y: u32) -> u32 {

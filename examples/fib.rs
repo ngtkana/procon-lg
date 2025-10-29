@@ -1,4 +1,4 @@
-use lg_recur::lg_recur;
+use procon_lg::lg_recur;
 
 #[lg_recur]
 fn fib(n: u32) -> u32 {
