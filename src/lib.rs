@@ -3,6 +3,7 @@
 //! A procedural macro library for debugging recursive functions in competitive programming
 
 mod args;
+mod arg_attrs;
 mod codegen;
 mod visitor;
 
@@ -43,11 +44,18 @@ use codegen::CodeGenerator;
 /// # Attributes
 ///
 /// - `#[no_debug]`: Exclude specific arguments from debug output
+/// - `#[fmt(closure)]`: Use custom formatter for argument display
 ///
 /// ```rust
 /// #[lg_recur]
-/// fn process(#[no_debug] secret: Secret, public: i32) {
+/// fn process(
+///     #[no_debug] secret: Secret, 
+///     #[fmt(|node: &Node| node.key)] node: &Node,
+///     #[fmt(|x: &u32| format!("0x{:x}", x))] hex_value: u32,
+/// ) {
 ///     // secret argument will not be included in debug output
+///     // node will be displayed using the custom formatter (showing only the key)
+///     // hex_value will be displayed in hexadecimal format
 /// }
 /// ```
 #[proc_macro_attribute]
