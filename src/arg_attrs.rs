@@ -4,11 +4,11 @@ use syn::{Attribute, Expr, Result};
 /// Represents different types of argument attributes
 #[derive(Clone)]
 pub enum ArgAttribute {
-    /// #[no_debug] - Exclude from debug output
+    /// #\[no_debug]] - Exclude from debug output
     NoDebug,
-    /// #[fmt(closure)] - Use custom formatter
+    /// #\[fmt(closure)\] - Use custom formatter
     Fmt { formatter: Expr },
-    /// #[no_name] - Don't show argument name (e.g., "arg=" part)
+    /// #\[no_name\] - Don't show argument name (e.g., "arg=" part)
     NoName,
 }
 
@@ -75,5 +75,34 @@ impl ArgAttributes {
                 format!("{:?}", #arg_name)
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use syn::parse_quote;
+
+    #[test]
+    fn test_fmt() {
+        let attr: Attribute = parse_quote!(#[fmt(|x| format!("0x{:x}", x))]);
+        let attrs = ArgAttributes::from_attrs(&[attr]).unwrap();
+        let value_: syn::Ident = parse_quote!(value);
+        let result = attrs.generate_format_tokens(&value_);
+        let expected = quote::quote! {
+            (|x| format!("0x{:x}", x))(&value)
+        };
+        assert_eq!(result.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn test_no_fmt() {
+        let attrs = ArgAttributes::from_attrs(&[]).unwrap();
+        let value_: syn::Ident = parse_quote!(value);
+        let result = attrs.generate_format_tokens(&value_);
+        let expected: TokenStream = quote::quote! {
+            format!("{:?}", value)
+        };
+        assert_eq!(result.to_string(), expected.to_string());
     }
 }

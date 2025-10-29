@@ -2,8 +2,8 @@
 //!
 //! A procedural macro library for debugging recursive functions in competitive programming
 
-mod args;
 mod arg_attrs;
+mod args;
 mod codegen;
 mod visitor;
 
@@ -50,7 +50,7 @@ use codegen::CodeGenerator;
 /// ```rust
 /// #[lg_recur]
 /// fn process(
-///     #[no_debug] secret: Secret, 
+///     #[no_debug] secret: Secret,
 ///     #[fmt(|node: &Node| node.key)] node: &Node,
 ///     #[fmt(|x: &u32| format!("0x{:x}", x))] #[no_name] hex_value: u32,
 ///     #[no_name] count: i32,

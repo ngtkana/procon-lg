@@ -5,6 +5,8 @@ use syn::{
 };
 
 /// Visitor for AST transformation
+///
+/// Call only [`Visitor::visit_block_mut`]!
 pub struct Visitor<'a> {
     pub(crate) fn_name: &'a syn::Ident,
 }
@@ -100,5 +102,72 @@ impl Visitor<'_> {
                 eprint!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use quote::quote;
+    use syn::{Block, parse_quote};
+
+    #[test]
+    fn test_recursive_call() {
+        let mut visitor = Visitor {
+            fn_name: &parse_quote!(fib),
+        };
+
+        let mut block: Block = parse_quote! {
+            {
+                if n <= 1 {
+                    1
+                } else {
+                    fib(n - 1) + fib(n - 2)
+                }
+            }
+        };
+
+        visitor.visit_block_mut(&mut block);
+
+        let expected: Block = parse_quote! {
+            {
+                if n <= 1 {
+                    1
+                } else {
+                    inner(n - 1, __lg_recur_level + 1) + inner(n - 2, __lg_recur_level + 1)
+                }
+            }
+        };
+
+        assert_eq!(quote!(#block).to_string(), quote!(#expected).to_string());
+    }
+
+    #[test]
+    fn test_println() {
+        let mut visitor = Visitor {
+            fn_name: &parse_quote!(test_fn),
+        };
+
+        let mut block: Block = parse_quote! {
+            {
+                println!("computing value for {}", n);
+                let result = 42;
+                println!();
+                result
+            }
+        };
+
+        visitor.visit_block_mut(&mut block);
+
+        let expected: Block = parse_quote! {
+            {
+                println!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!("computing value for {}", n));
+                let result = 42;
+                println!("{}", "│".repeat(__lg_recur_level + 1));
+                result
+            }
+        };
+
+        assert_eq!(quote!(#block).to_string(), quote!(#expected).to_string());
     }
 }
