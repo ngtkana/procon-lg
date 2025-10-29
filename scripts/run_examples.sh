@@ -127,16 +127,26 @@ process_example() {
         return 1
     fi
     
+    # Debug: Show executable info
+    log_info "Executable details: $(ls -la "$executable")"
+    log_info "File type: $(file "$executable")"
+    
     # Generate actual output
     local actual_output
     actual_output=$(mktemp)
+    log_info "Running: $executable"
     if ! "$executable" > "$actual_output" 2>&1; then
-        log_error "Failed to run: $executable"
+        local exit_code=$?
+        log_error "Failed to run: $executable (exit code: $exit_code)"
+        if [ -s "$actual_output" ]; then
+            log_error "Error output: $(cat "$actual_output")"
+        fi
         FAILED_EXAMPLES+=("$example")
         ((FAILED_COUNT++))
         rm "$actual_output"
         return 1
     fi
+    log_info "Successfully executed: $executable"
     
     # Compare with expected output if it exists
     local has_changes=false
