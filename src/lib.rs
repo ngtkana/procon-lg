@@ -45,13 +45,29 @@ pub fn lg_recur(_attr: TokenStream, item: TokenStream) -> TokenStream {
         })
         .collect();
 
+    // Create outer function args without mut keywords
+    let outer_fn_args: syn::punctuated::Punctuated<FnArg, syn::Token![,]> = fn_args
+        .iter()
+        .map(|arg| {
+            if let FnArg::Typed(pat_type) = arg {
+                let mut new_pat_type = pat_type.clone();
+                if let Pat::Ident(ref mut pat_ident) = *new_pat_type.pat {
+                    pat_ident.mutability = None; // Remove mut keyword
+                }
+                FnArg::Typed(new_pat_type)
+            } else {
+                arg.clone()
+            }
+        })
+        .collect();
+
     let mut transformer = RecursionTransformer {
         fn_name: fn_name.clone(),
     };
     transformer.visit_block_mut(&mut fn_block);
 
     let expanded = quote! {
-        fn #fn_name(#fn_args) #fn_return_type {
+        fn #fn_name(#outer_fn_args) #fn_return_type {
             fn inner(#fn_args, __lg_recur_level: usize) #fn_return_type {
                 let mut args_str = String::new();
                 #(
