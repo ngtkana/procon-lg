@@ -6,7 +6,7 @@ fn countdown(count: u32) {
         println!("Bang!");
     } else {
         println!("count = {count} (println)");
-        eprintln!("count = {count} (debug)");
+        eprintln!("count = {count} (eprintln)");
         print!("count = {count} (print)\n");
         eprint!("count = {count} (eprint)\n");
         countdown(count - 1);
