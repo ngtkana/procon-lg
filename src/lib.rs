@@ -1,8 +1,10 @@
 use proc_macro::TokenStream;
 use quote::{ToTokens, quote};
 use syn::{
-    Expr, ExprCall, FnArg, ItemFn, Pat, parse_macro_input, parse::Parse, 
-    visit_mut::{self, VisitMut}, Attribute,
+    Attribute, Expr, ExprCall, FnArg, ItemFn, Pat,
+    parse::Parse,
+    parse_macro_input,
+    visit_mut::{self, VisitMut},
 };
 
 #[derive(Default)]
@@ -13,28 +15,26 @@ struct MacroArgs {
 impl Parse for MacroArgs {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let mut args = MacroArgs::default();
-        
+
         while !input.is_empty() {
             let ident: syn::Ident = input.parse()?;
-            
+
             match ident.to_string().as_str() {
                 "no_return" => args.no_return = true,
                 _ => return Err(syn::Error::new(ident.span(), "unknown argument")),
             }
-            
+
             if input.peek(syn::Token![,]) {
                 input.parse::<syn::Token![,]>()?;
             }
         }
-        
+
         Ok(args)
     }
 }
 
-fn has_no_print_attr(attrs: &[Attribute]) -> bool {
-    attrs.iter().any(|attr| {
-        attr.path().is_ident("no_print")
-    })
+fn has_no_debug_attr(attrs: &[Attribute]) -> bool {
+    attrs.iter().any(|attr| attr.path().is_ident("no_debug"))
 }
 
 struct Visitor {
@@ -119,7 +119,7 @@ pub fn lg_recur(attr: TokenStream, item: TokenStream) -> TokenStream {
     } else {
         parse_macro_input!(attr as MacroArgs)
     };
-    
+
     let input_fn = parse_macro_input!(item as ItemFn);
     let fn_name = &input_fn.sig.ident;
     let fn_args = &input_fn.sig.inputs;
@@ -138,13 +138,13 @@ pub fn lg_recur(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
-    // Filter arguments and their names based on #[no_print] attribute
+    // Filter arguments and their names based on #[no_debug] attribute
     let printable_args: Vec<_> = fn_args
         .iter()
         .filter_map(|arg| {
             if let FnArg::Typed(pat_type) = arg {
                 if let Pat::Ident(pat_ident) = &*pat_type.pat {
-                    if !has_no_print_attr(&pat_type.attrs) {
+                    if !has_no_debug_attr(&pat_type.attrs) {
                         Some(&pat_ident.ident)
                     } else {
                         None
@@ -173,7 +173,7 @@ pub fn lg_recur(attr: TokenStream, item: TokenStream) -> TokenStream {
         })
         .collect();
 
-    // Create outer function args without mut keywords and #[no_print] attributes
+    // Create outer function args without mut keywords and #[no_debug] attributes
     let outer_fn_args: syn::punctuated::Punctuated<FnArg, syn::Token![,]> = fn_args
         .iter()
         .map(|arg| {
@@ -182,8 +182,10 @@ pub fn lg_recur(attr: TokenStream, item: TokenStream) -> TokenStream {
                 if let Pat::Ident(ref mut pat_ident) = *new_pat_type.pat {
                     pat_ident.mutability = None; // Remove mut keyword of outer-fn
                 }
-                // Remove #[no_print] attributes from outer function
-                new_pat_type.attrs.retain(|attr| !has_no_print_attr(&[attr.clone()]));
+                // Remove #[no_debug] attributes from outer function
+                new_pat_type
+                    .attrs
+                    .retain(|attr| !has_no_debug_attr(&[attr.clone()]));
                 FnArg::Typed(new_pat_type)
             } else {
                 arg.clone()
@@ -191,14 +193,16 @@ pub fn lg_recur(attr: TokenStream, item: TokenStream) -> TokenStream {
         })
         .collect();
 
-    // Clean inner function args (remove #[no_print] attributes)
+    // Clean inner function args (remove #[no_debug] attributes)
     let inner_fn_args: syn::punctuated::Punctuated<FnArg, syn::Token![,]> = fn_args
         .iter()
         .map(|arg| {
             if let FnArg::Typed(pat_type) = arg {
                 let mut new_pat_type = pat_type.clone();
-                // Remove #[no_print] attributes from inner function
-                new_pat_type.attrs.retain(|attr| !has_no_print_attr(&[attr.clone()]));
+                // Remove #[no_debug] attributes from inner function
+                new_pat_type
+                    .attrs
+                    .retain(|attr| !has_no_debug_attr(&[attr.clone()]));
                 FnArg::Typed(new_pat_type)
             } else {
                 arg.clone()

@@ -1,7 +1,7 @@
 use procon_lg::lg_recur;
 
 #[lg_recur(no_return)]
-fn test_basic(#[no_print] no_debug: NoDebug, #[no_print] count: u32, print_me: u32) -> NoDebug {
+fn test_basic(#[no_debug] no_debug: NoDebug, #[no_debug] count: u32, print_me: u32) -> NoDebug {
     if count == 0 {
         println!("Bang!");
         NoDebug(42)
