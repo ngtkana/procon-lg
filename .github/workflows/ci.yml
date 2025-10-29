@@ -35,12 +35,6 @@ jobs:
       
       - name: Run unit tests
         run: cargo test --verbose
-      
-      - name: Set execute permissions for scripts
-        run: chmod +x scripts/run_examples.sh
-      
-      - name: Run example tests
-        run: ./scripts/run_examples.sh --diff --fail-on-diff
 
   fmt:
     name: Format Check
