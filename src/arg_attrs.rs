@@ -6,7 +6,7 @@ use syn::{Attribute, Expr, Result};
 pub enum ArgAttribute {
     /// #\[no_debug]] - Exclude from debug output
     NoDebug,
-    /// #\[fmt(closure)\] - Use custom formatter
+    /// #\[fmt(closure-impl)\] - Use custom formatter
     Fmt { formatter: Expr },
     /// #\[no_name\] - Don't show argument name (e.g., "arg=" part)
     NoName,
@@ -65,7 +65,11 @@ impl ArgAttributes {
     }
 
     /// Generate format tokens for this argument
-    pub fn generate_format_tokens(&self, arg_name: &syn::Ident, arg_type: &syn::Type) -> TokenStream {
+    pub fn generate_format_tokens(
+        &self,
+        arg_name: &syn::Ident,
+        arg_type: &syn::Type,
+    ) -> TokenStream {
         if let Some(formatter) = self.get_custom_formatter() {
             // Create a closure that wraps the formatter expression
             // The closure parameter should be a reference to the type
