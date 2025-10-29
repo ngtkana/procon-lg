@@ -1,0 +1,74 @@
+use proc_macro::TokenStream;
+use quote::quote;
+use syn::{Expr, ExprCall, FnArg, ItemFn, Pat, parse_macro_input, visit_mut::VisitMut};
+
+struct RecursionTransformer {
+    fn_name: syn::Ident,
+}
+
+impl VisitMut for RecursionTransformer {
+    fn visit_expr_call_mut(&mut self, call: &mut ExprCall) {
+        if let Expr::Path(path) = &*call.func
+            && path.path.is_ident(&self.fn_name)
+        {
+            let level_arg = syn::parse_quote!(__lg_recur_level + 1);
+            call.args.push(level_arg);
+
+            let inner_path: syn::ExprPath = syn::parse_quote!(inner);
+            call.func = Box::new(Expr::Path(inner_path));
+        }
+
+        syn::visit_mut::visit_expr_call_mut(self, call);
+    }
+}
+
+#[proc_macro_attribute]
+pub fn lg_recur(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let input_fn = parse_macro_input!(item as ItemFn);
+    let fn_name = &input_fn.sig.ident;
+    let fn_args = &input_fn.sig.inputs;
+    let fn_return_type = &input_fn.sig.output;
+    let mut fn_block = input_fn.block.clone();
+
+    let arg_names: Vec<_> = fn_args
+        .iter()
+        .filter_map(|arg| {
+            if let FnArg::Typed(pat_type) = arg {
+                if let Pat::Ident(pat_ident) = &*pat_type.pat {
+                    Some(&pat_ident.ident)
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    let mut transformer = RecursionTransformer {
+        fn_name: fn_name.clone(),
+    };
+    transformer.visit_block_mut(&mut fn_block);
+
+    let expanded = quote! {
+        fn #fn_name(#fn_args) #fn_return_type {
+            fn inner(#fn_args, __lg_recur_level: usize) #fn_return_type {
+                if __lg_recur_level == 0 {
+                    eprintln!("{}(arg=arg)", stringify!(#fn_name));
+                } else {
+                    eprintln!("{}", "│".repeat(__lg_recur_level));
+                    eprintln!(
+                        "{}┬(arg=arg)",
+                        "│".repeat(__lg_recur_level - 1) + "├"
+                    );
+                }
+
+                let ans = #fn_block;
+
+                ans
+            }
+            inner(#(#arg_names),*, 0)
+        }
+    };
+    TokenStream::from(expanded)
+}
