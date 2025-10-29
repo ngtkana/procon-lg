@@ -27,6 +27,6 @@ repos:
         
       - id: example-tests
         name: Example tests
-        entry: ./scripts/test_examples.sh
+        entry: ./scripts/run_examples.sh
         language: script
         pass_filenames: false
