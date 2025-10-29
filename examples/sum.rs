@@ -3,15 +3,14 @@ use procon_lg::lg_recur;
 #[lg_recur]
 fn sum(a: &[u32]) -> u32 {
     let n = a.len();
-    let ans = match n {
+    match n {
         0 => 0,
         1 => a[0],
         _ => {
             let (a0, a1) = a.split_at(n / 2);
             sum(a0) + sum(a1)
         }
-    };
-    ans
+    }
 }
 
 fn main() {

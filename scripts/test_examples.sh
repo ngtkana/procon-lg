@@ -21,7 +21,7 @@ FAILED_TESTS=()
 PASSED_TESTS=()
 
 # 各exampleをテスト
-for example in sum fib gcd countdown no_debug; do
+for example in sum fib gcd countdown no_debug custom_fmt; do
     echo "🧪 Testing example: $example"
     
     # 期待される出力ファイルが存在するかチェック

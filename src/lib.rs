@@ -45,19 +45,24 @@ use codegen::CodeGenerator;
 ///
 /// - `#[no_debug]`: Exclude specific arguments from debug output
 /// - `#[fmt(closure)]`: Use custom formatter for argument display
+/// - `#[no_name]`: Hide argument name (only show value, not "arg=value")
 ///
 /// ```rust
 /// #[lg_recur]
 /// fn process(
 ///     #[no_debug] secret: Secret, 
 ///     #[fmt(|node: &Node| node.key)] node: &Node,
-///     #[fmt(|x: &u32| format!("0x{:x}", x))] hex_value: u32,
+///     #[fmt(|x: &u32| format!("0x{:x}", x))] #[no_name] hex_value: u32,
+///     #[no_name] count: i32,
 /// ) {
 ///     // secret argument will not be included in debug output
 ///     // node will be displayed using the custom formatter (showing only the key)
-///     // hex_value will be displayed in hexadecimal format
+///     // hex_value will be displayed in hexadecimal format without "hex_value=" prefix
+///     // count will be displayed without "count=" prefix
 /// }
 /// ```
+///
+/// Multiple attributes can be combined on the same argument.
 #[proc_macro_attribute]
 pub fn lg_recur(attr: TokenStream, item: TokenStream) -> TokenStream {
     let macro_args = if attr.is_empty() {

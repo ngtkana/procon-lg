@@ -11,7 +11,9 @@ struct Node {
 
 #[lg_recur]
 fn traversal(
-    #[fmt(|node: &Node| node.key)] root: &Node,
+    #[no_name]
+    #[fmt(|node: &Node| node.key)]
+    root: &Node,
     #[fmt(|code: &u32| format!("{:b}", code))] code: u32,
 ) {
     unsafe {

@@ -3,7 +3,7 @@ use syn::visit_mut::VisitMut;
 use syn::{Attribute, FnArg, Pat, PatIdent};
 use syn::{ReturnType, Type};
 
-use crate::{args::MacroArgs, arg_attrs::ArgAttributes, visitor::Visitor};
+use crate::{arg_attrs::ArgAttributes, args::MacroArgs, visitor::Visitor};
 
 /// Code generator
 pub struct CodeGenerator {
@@ -45,17 +45,29 @@ impl CodeGenerator {
             }
         };
 
-        // カスタムフォーマットを生成
-        let arg_format_exprs: Vec<_> = printable_args.iter().map(|(ident, attrs)| {
-            let arg_name_str = ident.to_string();
-            let format_expr = attrs.generate_format_tokens(ident);
-            quote! {
-                if !args_str.is_empty() {
-                    args_str.push_str(", ");
+        // Generate custom format expressions
+        let arg_format_exprs: Vec<_> = printable_args
+            .iter()
+            .map(|(ident, attrs)| {
+                let format_expr = attrs.generate_format_tokens(ident);
+                if attrs.should_hide_name() {
+                    quote! {
+                        if !args_str.is_empty() {
+                            args_str.push_str(", ");
+                        }
+                        args_str.push_str(&format!("{}", #format_expr));
+                    }
+                } else {
+                    let arg_name_str = ident.to_string();
+                    quote! {
+                        if !args_str.is_empty() {
+                            args_str.push_str(", ");
+                        }
+                        args_str.push_str(&format!("{}:{}", #arg_name_str, #format_expr));
+                    }
                 }
-                args_str.push_str(&format!("{}={}", #arg_name_str, #format_expr));
-            }
-        }).collect();
+            })
+            .collect();
 
         quote! {
             fn #fn_name(#outer_fn_args) #fn_return_type {
@@ -142,9 +154,7 @@ impl CodeGenerator {
                         pat_ident.mutability = None; // Remove mut keyword
                     }
                     // Remove custom attributes (no_debug, fmt)
-                    new_pat_type
-                        .attrs
-                        .retain(|attr| !is_custom_attr(attr));
+                    new_pat_type.attrs.retain(|attr| !is_custom_attr(attr));
                     FnArg::Typed(new_pat_type)
                 } else {
                     arg.clone()
@@ -163,9 +173,7 @@ impl CodeGenerator {
                 if let FnArg::Typed(pat_type) = arg {
                     let mut new_pat_type = pat_type.clone();
                     // Remove custom attributes (no_debug, fmt)
-                    new_pat_type
-                        .attrs
-                        .retain(|attr| !is_custom_attr(attr));
+                    new_pat_type.attrs.retain(|attr| !is_custom_attr(attr));
                     FnArg::Typed(new_pat_type)
                 } else {
                     arg.clone()
@@ -188,10 +196,8 @@ fn is_unit_return_type(return_type: &ReturnType) -> bool {
     }
 }
 
-fn has_no_debug_attr(attrs: &[Attribute]) -> bool {
-    attrs.iter().any(|attr| attr.path().is_ident("no_debug"))
-}
-
 fn is_custom_attr(attr: &Attribute) -> bool {
-    attr.path().is_ident("no_debug") || attr.path().is_ident("fmt")
+    attr.path().is_ident("no_debug")
+        || attr.path().is_ident("fmt")
+        || attr.path().is_ident("no_name")
 }
