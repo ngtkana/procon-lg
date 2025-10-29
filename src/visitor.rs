@@ -34,16 +34,16 @@ impl VisitMut for Visitor<'_> {
 
         match path.as_str() {
             "println" => {
-                *mac = self.transform_println_macro(tokens);
+                *mac = transform_println_macro(tokens);
             }
             "eprintln" => {
-                *mac = self.transform_eprintln_macro(tokens);
+                *mac = transform_eprintln_macro(tokens);
             }
             "print" => {
-                *mac = self.transform_print_macro(tokens);
+                *mac = transform_print_macro(tokens);
             }
             "eprint" => {
-                *mac = self.transform_eprint_macro(tokens);
+                *mac = transform_eprint_macro(tokens);
             }
             _ => {}
         }
@@ -51,59 +51,59 @@ impl VisitMut for Visitor<'_> {
     }
 }
 
-impl Visitor<'_> {
-    /// Transform `println!` macro
-    fn transform_println_macro(&self, tokens: &proc_macro2::TokenStream) -> syn::Macro {
-        if tokens.is_empty() {
-            syn::parse_quote! {
-                println!("{}", "│".repeat(__lg_recur_level + 1))
-            }
-        } else {
-            syn::parse_quote! {
-                println!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
-            }
+/// Transform `println!` macro
+fn transform_println_macro(tokens: &proc_macro2::TokenStream) -> syn::Macro {
+    if tokens.is_empty() {
+        syn::parse_quote! {
+            println!("{}", "│".repeat(__lg_recur_level + 1))
         }
-    }
-
-    /// Transform `eprintln!` macro
-    fn transform_eprintln_macro(&self, tokens: &proc_macro2::TokenStream) -> syn::Macro {
-        if tokens.is_empty() {
-            syn::parse_quote! {
-                eprintln!("{}", "│".repeat(__lg_recur_level + 1))
-            }
-        } else {
-            syn::parse_quote! {
-                eprintln!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
-            }
-        }
-    }
-
-    /// Transform `print!` macro
-    fn transform_print_macro(&self, tokens: &proc_macro2::TokenStream) -> syn::Macro {
-        if tokens.is_empty() {
-            syn::parse_quote! {
-                print!("{}", "│".repeat(__lg_recur_level + 1))
-            }
-        } else {
-            syn::parse_quote! {
-                print!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
-            }
-        }
-    }
-
-    /// Transform `eprint!` macro
-    fn transform_eprint_macro(&self, tokens: &proc_macro2::TokenStream) -> syn::Macro {
-        if tokens.is_empty() {
-            syn::parse_quote! {
-                eprint!("{}", "│".repeat(__lg_recur_level + 1))
-            }
-        } else {
-            syn::parse_quote! {
-                eprint!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
-            }
+    } else {
+        syn::parse_quote! {
+            println!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
         }
     }
 }
+
+/// Transform `eprintln!` macro
+fn transform_eprintln_macro(tokens: &proc_macro2::TokenStream) -> syn::Macro {
+    if tokens.is_empty() {
+        syn::parse_quote! {
+            eprintln!("{}", "│".repeat(__lg_recur_level + 1))
+        }
+    } else {
+        syn::parse_quote! {
+            eprintln!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
+        }
+    }
+}
+
+/// Transform `print!` macro
+fn transform_print_macro(tokens: &proc_macro2::TokenStream) -> syn::Macro {
+    if tokens.is_empty() {
+        syn::parse_quote! {
+            print!("{}", "│".repeat(__lg_recur_level + 1))
+        }
+    } else {
+        syn::parse_quote! {
+            print!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
+        }
+    }
+}
+
+/// Transform `eprint!` macro
+fn transform_eprint_macro(tokens: &proc_macro2::TokenStream) -> syn::Macro {
+    if tokens.is_empty() {
+        syn::parse_quote! {
+            eprint!("{}", "│".repeat(__lg_recur_level + 1))
+        }
+    } else {
+        syn::parse_quote! {
+            eprint!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
+        }
+    }
+}
+
+impl Visitor<'_> {}
 
 #[cfg(test)]
 mod tests {
