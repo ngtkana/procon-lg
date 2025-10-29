@@ -12,5 +12,5 @@ fn fib(n: u32) -> u32 {
 }
 
 fn main() {
-    println!("{}", fib(7));
+    println!("{}", fib(4));
 }
