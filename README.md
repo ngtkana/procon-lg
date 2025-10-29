@@ -10,7 +10,7 @@ To run the same quality checks locally as in the CI environment, you can use pre
 
 ```bash
 # Install pre-commit
-pip install pre-commit
+pip3 install pre-commit
 
 # Install pre-commit hooks
 pre-commit install
@@ -34,16 +34,8 @@ fn fibonacci(n: u32) -> u32 {
 }
 ```
 
-For detailed usage instructions, please refer to the sample code in the `examples/` directory.
-
 ## Running Tests
 
 ```bash
-# Unit tests
-cargo test
-
-# Example tests
-./scripts/test_examples.sh
-
-# All QA checks
-pre-commit run --all-files
+precommit run --all-files
+```
