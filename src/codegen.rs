@@ -48,8 +48,8 @@ impl CodeGenerator {
         // Generate custom format expressions
         let arg_format_exprs: Vec<_> = printable_args
             .iter()
-            .map(|(ident, attrs)| {
-                let format_expr = attrs.generate_format_tokens(ident);
+            .map(|(ident, arg_type, attrs)| {
+                let format_expr = attrs.generate_format_tokens(ident, arg_type);
                 if attrs.should_hide_name() {
                     quote! {
                         if !args_str.is_empty() {
@@ -97,7 +97,7 @@ impl CodeGenerator {
     }
 
     /// Extract arguments for debug output with their formatting information
-    fn extract_printable_args(&self) -> Vec<(&syn::Ident, ArgAttributes)> {
+    fn extract_printable_args(&self) -> Vec<(&syn::Ident, &syn::Type, ArgAttributes)> {
         self.input_fn
             .sig
             .inputs
@@ -107,7 +107,7 @@ impl CodeGenerator {
                     if let Pat::Ident(PatIdent { ident, .. }) = &*pat_type.pat {
                         let arg_attrs = ArgAttributes::from_attrs(&pat_type.attrs).ok()?;
                         if arg_attrs.should_include_in_debug() {
-                            Some((ident, arg_attrs))
+                            Some((ident, &*pat_type.ty, arg_attrs))
                         } else {
                             None
                         }

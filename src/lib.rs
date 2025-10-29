@@ -60,8 +60,8 @@ use codegen::CodeGenerator;
 /// #[lg_recur]
 /// fn process(
 ///     #[no_debug] secret: Secret,
-///     #[fmt(|node: &Node| node.key)] node: &Node,
-///     #[fmt(|x: &u32| format!("0x{:x}", x))] #[no_name] hex_value: u32,
+///     #[fmt(node.key)] node: &Node,
+///     #[fmt(format!("0x{:x}", hex_value))] #[no_name] hex_value: u32,
 ///     #[no_name] count: i32,
 /// ) {
 ///     // secret argument will not be included in debug output

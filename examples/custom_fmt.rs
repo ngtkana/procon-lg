@@ -12,9 +12,9 @@ struct Node {
 #[lg_recur]
 fn traversal(
     #[no_name]
-    #[fmt(|node: &Node| node.key)]
+    #[fmt(root.key)]
     root: &Node,
-    #[fmt(|code: &u32| format!("{:b}", code))] code: u32,
+    #[fmt(format!("{:b}", code))] code: u32,
 ) {
     unsafe {
         if let Some(left) = root.left.as_ref() {

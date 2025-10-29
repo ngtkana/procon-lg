@@ -65,10 +65,12 @@ impl ArgAttributes {
     }
 
     /// Generate format tokens for this argument
-    pub fn generate_format_tokens(&self, arg_name: &syn::Ident) -> TokenStream {
+    pub fn generate_format_tokens(&self, arg_name: &syn::Ident, arg_type: &syn::Type) -> TokenStream {
         if let Some(formatter) = self.get_custom_formatter() {
+            // Create a closure that wraps the formatter expression
+            // The closure parameter should be a reference to the type
             quote::quote! {
-                (#formatter)(&#arg_name)
+                (|#arg_name: &#arg_type| #formatter)(&#arg_name)
             }
         } else {
             quote::quote! {
@@ -84,13 +86,27 @@ mod tests {
     use syn::parse_quote;
 
     #[test]
-    fn test_fmt() {
-        let attr: Attribute = parse_quote!(#[fmt(|x| format!("0x{:x}", x))]);
+    fn test_fmt_with_expression() {
+        let attr: Attribute = parse_quote!(#[fmt(format!("0x{:x}", value))]);
         let attrs = ArgAttributes::from_attrs(&[attr]).unwrap();
         let value_: syn::Ident = parse_quote!(value);
-        let result = attrs.generate_format_tokens(&value_);
+        let value_type: syn::Type = parse_quote!(i32);
+        let result = attrs.generate_format_tokens(&value_, &value_type);
         let expected = quote::quote! {
-            (|x| format!("0x{:x}", x))(&value)
+            (|value: &i32| format!("0x{:x}", value))(&value)
+        };
+        assert_eq!(result.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn test_fmt_with_field_access() {
+        let attr: Attribute = parse_quote!(#[fmt(node.key)]);
+        let attrs = ArgAttributes::from_attrs(&[attr]).unwrap();
+        let node_: syn::Ident = parse_quote!(node);
+        let node_type: syn::Type = parse_quote!(&Node);
+        let result = attrs.generate_format_tokens(&node_, &node_type);
+        let expected = quote::quote! {
+            (|node: & & Node| node.key)(&node)
         };
         assert_eq!(result.to_string(), expected.to_string());
     }
@@ -99,7 +115,8 @@ mod tests {
     fn test_no_fmt() {
         let attrs = ArgAttributes::from_attrs(&[]).unwrap();
         let value_: syn::Ident = parse_quote!(value);
-        let result = attrs.generate_format_tokens(&value_);
+        let value_type: syn::Type = parse_quote!(i32);
+        let result = attrs.generate_format_tokens(&value_, &value_type);
         let expected: TokenStream = quote::quote! {
             format!("{:?}", value)
         };
