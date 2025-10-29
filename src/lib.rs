@@ -34,10 +34,14 @@ use codegen::CodeGenerator;
 ///
 /// - `no_return`: Disable return value output
 ///
-/// ```rust
+/// ```rust,no_run
+/// use procon_lg::lg_recur;
+///
+/// struct SomeType;
+///
 /// #[lg_recur(no_return)]
-/// fn some_function() -> SomeType {
-///     // implementation
+/// fn some_function(x: i32) -> SomeType {
+///     SomeType
 /// }
 /// ```
 ///
@@ -47,7 +51,12 @@ use codegen::CodeGenerator;
 /// - `#[fmt(closure)]`: Use custom formatter for argument display
 /// - `#[no_name]`: Hide argument name (only show value, not "arg=value")
 ///
-/// ```rust
+/// ```rust,no_run
+/// use procon_lg::lg_recur;
+///
+/// struct Secret;
+/// struct Node { key: i32 }
+///
 /// #[lg_recur]
 /// fn process(
 ///     #[no_debug] secret: Secret,

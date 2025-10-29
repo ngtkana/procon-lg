@@ -20,7 +20,7 @@ impl VisitMut for Visitor<'_> {
             let level_arg = syn::parse_quote!(__lg_recur_level + 1);
             call.args.push(level_arg);
 
-            let inner_path: ExprPath = syn::parse_quote!(inner);
+            let inner_path: ExprPath = syn::parse_quote!(__procon_lg_recurse);
             call.func = Box::new(Expr::Path(inner_path));
         }
 
@@ -134,7 +134,7 @@ mod tests {
                 if n <= 1 {
                     1
                 } else {
-                    inner(n - 1, __lg_recur_level + 1) + inner(n - 2, __lg_recur_level + 1)
+                    __procon_lg_recurse(n - 1, __lg_recur_level + 1) + __procon_lg_recurse(n - 2, __lg_recur_level + 1)
                 }
             }
         };

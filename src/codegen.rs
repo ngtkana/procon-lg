@@ -71,7 +71,7 @@ impl CodeGenerator {
 
         quote! {
             fn #fn_name(#outer_fn_args) #fn_return_type {
-                fn inner(#inner_fn_args, __lg_recur_level: usize) #fn_return_type {
+                fn __procon_lg_recurse(#inner_fn_args, __lg_recur_level: usize) #fn_return_type {
                     let mut args_str = String::new();
                     #(#arg_format_exprs)*
 
@@ -91,7 +91,7 @@ impl CodeGenerator {
 
                     ans
                 }
-                inner(#(#all_arg_names),*, 0)
+                __procon_lg_recurse(#(#all_arg_names),*, 0)
             }
         }
     }
@@ -163,7 +163,8 @@ impl CodeGenerator {
             .collect()
     }
 
-    /// Create argument list for inner function (remove only custom attributes)
+    /// Create argument list for `__procon_lg_recurse` function (remove only custom
+    /// attributes)proconlg
     fn create_inner_fn_args(&self) -> syn::punctuated::Punctuated<FnArg, syn::Token![,]> {
         self.input_fn
             .sig
