@@ -5,28 +5,15 @@ use syn::{
 };
 
 /// Visitor for AST transformation
-pub struct Visitor {
-    fn_name: syn::Ident,
+pub struct Visitor<'a> {
+    pub(crate) fn_name: &'a syn::Ident,
 }
 
-impl Visitor {
-    /// Create a new visitor
-    pub fn new(fn_name: syn::Ident) -> Self {
-        Self { fn_name }
-    }
-
-    /// Transform a function block
-    pub fn transform_block(fn_name: syn::Ident, block: &mut syn::Block) {
-        let mut visitor = Self::new(fn_name);
-        visitor.visit_block_mut(block);
-    }
-}
-
-impl VisitMut for Visitor {
+impl VisitMut for Visitor<'_> {
     /// Transform recursive calls
     fn visit_expr_call_mut(&mut self, call: &mut ExprCall) {
         if let Expr::Path(path) = &*call.func
-            && path.path.is_ident(&self.fn_name)
+            && path.path.is_ident(self.fn_name)
         {
             let level_arg = syn::parse_quote!(__lg_recur_level + 1);
             call.args.push(level_arg);
@@ -42,7 +29,7 @@ impl VisitMut for Visitor {
     fn visit_macro_mut(&mut self, mac: &mut syn::Macro) {
         let path = mac.path.to_token_stream().to_string();
         let tokens = &mac.tokens;
-        
+
         match path.as_str() {
             "println" => {
                 *mac = self.transform_println_macro(tokens);
@@ -62,7 +49,7 @@ impl VisitMut for Visitor {
     }
 }
 
-impl Visitor {
+impl Visitor<'_> {
     /// Transform `println!` macro
     fn transform_println_macro(&self, tokens: &proc_macro2::TokenStream) -> syn::Macro {
         if tokens.is_empty() {

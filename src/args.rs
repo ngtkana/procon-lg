@@ -26,15 +26,3 @@ impl Parse for MacroArgs {
         Ok(args)
     }
 }
-
-impl MacroArgs {
-    /// Create default arguments
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Check if the `no_return` flag is set
-    pub fn has_no_return(&self) -> bool {
-        self.no_return
-    }
-}

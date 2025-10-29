@@ -1,32 +1,30 @@
 use quote::quote;
-use syn::{FnArg, Pat, PatIdent};
-use crate::args::MacroArgs;
-use crate::attributes::has_no_debug_attr;
-use crate::utils::is_unit_return_type;
+use syn::visit_mut::VisitMut;
+use syn::{Attribute, FnArg, Pat, PatIdent};
+use syn::{ReturnType, Type};
+
+use crate::{args::MacroArgs, visitor::Visitor};
 
 /// Code generator
 pub struct CodeGenerator {
-    input_fn: syn::ItemFn,
-    macro_args: MacroArgs,
+    pub(crate) input_fn: syn::ItemFn,
+    pub(crate) macro_args: MacroArgs,
 }
 
 impl CodeGenerator {
-    /// Create a new code generator
-    pub fn new(input_fn: syn::ItemFn, macro_args: MacroArgs) -> Self {
-        Self { input_fn, macro_args }
-    }
-
     /// Generate complete code
     pub fn generate(&self) -> proc_macro2::TokenStream {
         let fn_name = &self.input_fn.sig.ident;
         let fn_return_type = &self.input_fn.sig.output;
         let mut fn_block = self.input_fn.block.clone();
 
-        // Execute AST transformation
-        crate::visitor::Visitor::transform_block(fn_name.clone(), &mut fn_block);
+        // Do the below:
+        // 1. Transform recursive calls
+        // 2. Transform print-like macros
+        let mut visitor = Visitor { fn_name };
+        visitor.visit_block_mut(&mut fn_block);
 
-        let is_unit_return = is_unit_return_type(fn_return_type);
-        let show_return = !self.macro_args.has_no_return() && !is_unit_return;
+        let show_return = !self.macro_args.no_return && !is_unit_return_type(fn_return_type);
 
         let printable_args = self.extract_printable_args();
         let all_arg_names = self.extract_all_arg_names();
@@ -81,7 +79,9 @@ impl CodeGenerator {
 
     /// Extract arguments for debug output
     fn extract_printable_args(&self) -> Vec<&syn::Ident> {
-        self.input_fn.sig.inputs
+        self.input_fn
+            .sig
+            .inputs
             .iter()
             .filter_map(|arg| {
                 if let FnArg::Typed(pat_type) = arg {
@@ -103,7 +103,9 @@ impl CodeGenerator {
 
     /// Extract all argument names
     fn extract_all_arg_names(&self) -> Vec<&syn::Ident> {
-        self.input_fn.sig.inputs
+        self.input_fn
+            .sig
+            .inputs
             .iter()
             .filter_map(|arg| {
                 if let FnArg::Typed(pat_type) = arg {
@@ -121,7 +123,9 @@ impl CodeGenerator {
 
     /// Create argument list for outer function (remove mut keyword and #[no_debug] attributes)
     fn create_outer_fn_args(&self) -> syn::punctuated::Punctuated<FnArg, syn::Token![,]> {
-        self.input_fn.sig.inputs
+        self.input_fn
+            .sig
+            .inputs
             .iter()
             .map(|arg| {
                 if let FnArg::Typed(pat_type) = arg {
@@ -130,7 +134,9 @@ impl CodeGenerator {
                         pat_ident.mutability = None; // Remove mut keyword
                     }
                     // Remove #[no_debug] attributes
-                    new_pat_type.attrs.retain(|attr| !has_no_debug_attr(&[attr.clone()]));
+                    new_pat_type
+                        .attrs
+                        .retain(|attr| !has_no_debug_attr(&[attr.clone()]));
                     FnArg::Typed(new_pat_type)
                 } else {
                     arg.clone()
@@ -141,13 +147,17 @@ impl CodeGenerator {
 
     /// Create argument list for inner function (remove only #[no_debug] attributes)
     fn create_inner_fn_args(&self) -> syn::punctuated::Punctuated<FnArg, syn::Token![,]> {
-        self.input_fn.sig.inputs
+        self.input_fn
+            .sig
+            .inputs
             .iter()
             .map(|arg| {
                 if let FnArg::Typed(pat_type) = arg {
                     let mut new_pat_type = pat_type.clone();
                     // Remove #[no_debug] attributes
-                    new_pat_type.attrs.retain(|attr| !has_no_debug_attr(&[attr.clone()]));
+                    new_pat_type
+                        .attrs
+                        .retain(|attr| !has_no_debug_attr(&[attr.clone()]));
                     FnArg::Typed(new_pat_type)
                 } else {
                     arg.clone()
@@ -155,4 +165,21 @@ impl CodeGenerator {
             })
             .collect()
     }
+}
+
+fn is_unit_return_type(return_type: &ReturnType) -> bool {
+    match return_type {
+        ReturnType::Default => true,
+        ReturnType::Type(_, ty) => {
+            if let Type::Tuple(tuple) = &**ty {
+                tuple.elems.is_empty()
+            } else {
+                false
+            }
+        }
+    }
+}
+
+fn has_no_debug_attr(attrs: &[Attribute]) -> bool {
+    attrs.iter().any(|attr| attr.path().is_ident("no_debug"))
 }
