@@ -151,8 +151,21 @@ process_example() {
     # Compare with expected output if it exists
     local has_changes=false
     if [ -f "$expected_file" ]; then
+        log_info "Expected file exists: $expected_file"
+        log_info "Expected file content: $(cat "$expected_file" | wc -l) lines, $(cat "$expected_file" | wc -c) chars"
+        log_info "Actual output content: $(cat "$actual_output" | wc -l) lines, $(cat "$actual_output" | wc -c) chars"
+        
         if ! diff -q "$expected_file" "$actual_output" > /dev/null 2>&1; then
             has_changes=true
+            log_warn "Output differs for $example"
+            log_warn "Expected:"
+            cat "$expected_file" | head -n 10
+            log_warn "Actual:"
+            cat "$actual_output" | head -n 10
+            log_warn "Diff:"
+            diff "$expected_file" "$actual_output" || true
+        else
+            log_info "Output matches expected for $example"
         fi
     else
         # New expected output file
