@@ -31,24 +31,48 @@ impl VisitMut for Visitor {
         let tokens = &mac.tokens;
         match path.as_str() {
             "println" => {
-                *mac = syn::parse_quote! {
-                    println!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
-                };
+                if tokens.is_empty() {
+                    *mac = syn::parse_quote! {
+                        println!("{}", "│".repeat(__lg_recur_level + 1))
+                    };
+                } else {
+                    *mac = syn::parse_quote! {
+                        println!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
+                    };
+                }
             }
             "eprintln" => {
-                *mac = syn::parse_quote! {
-                    eprintln!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
-                };
+                if tokens.is_empty() {
+                    *mac = syn::parse_quote! {
+                        eprintln!("{}", "│".repeat(__lg_recur_level + 1))
+                    };
+                } else {
+                    *mac = syn::parse_quote! {
+                        eprintln!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
+                    };
+                }
             }
             "print" => {
-                *mac = syn::parse_quote! {
-                    print!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
-                };
+                if tokens.is_empty() {
+                    *mac = syn::parse_quote! {
+                        print!("{}", "│".repeat(__lg_recur_level + 1))
+                    };
+                } else {
+                    *mac = syn::parse_quote! {
+                        print!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
+                    };
+                }
             }
             "eprint" => {
-                *mac = syn::parse_quote! {
-                    eprint!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
-                };
+                if tokens.is_empty() {
+                    *mac = syn::parse_quote! {
+                        eprint!("{}", "│".repeat(__lg_recur_level + 1))
+                    };
+                } else {
+                    *mac = syn::parse_quote! {
+                        eprint!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
+                    };
+                }
             }
             _ => {}
         }
