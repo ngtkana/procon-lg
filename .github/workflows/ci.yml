@@ -37,7 +37,7 @@ jobs:
         run: cargo test --verbose
       
       - name: Run example tests
-        run: ./scripts/run_examples.sh
+        run: ./scripts/run_examples.sh --list-changed --fail-on-diff
 
   fmt:
     name: Format Check
