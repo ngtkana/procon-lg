@@ -127,45 +127,22 @@ process_example() {
         return 1
     fi
     
-    # Debug: Show executable info
-    log_info "Executable details: $(ls -la "$executable")"
-    log_info "File type: $(file "$executable")"
-    
     # Generate actual output
     local actual_output
     actual_output=$(mktemp)
-    log_info "Running: $executable"
     if ! "$executable" > "$actual_output" 2>&1; then
-        local exit_code=$?
-        log_error "Failed to run: $executable (exit code: $exit_code)"
-        if [ -s "$actual_output" ]; then
-            log_error "Error output: $(cat "$actual_output")"
-        fi
+        log_error "Failed to run: $executable"
         FAILED_EXAMPLES+=("$example")
         ((FAILED_COUNT++))
         rm "$actual_output"
         return 1
     fi
-    log_info "Successfully executed: $executable"
     
     # Compare with expected output if it exists
     local has_changes=false
     if [ -f "$expected_file" ]; then
-        log_info "Expected file exists: $expected_file"
-        log_info "Expected file content: $(cat "$expected_file" | wc -l) lines, $(cat "$expected_file" | wc -c) chars"
-        log_info "Actual output content: $(cat "$actual_output" | wc -l) lines, $(cat "$actual_output" | wc -c) chars"
-        
         if ! diff -q "$expected_file" "$actual_output" > /dev/null 2>&1; then
             has_changes=true
-            log_warn "Output differs for $example"
-            log_warn "Expected:"
-            cat "$expected_file" | head -n 10
-            log_warn "Actual:"
-            cat "$actual_output" | head -n 10
-            log_warn "Diff:"
-            diff "$expected_file" "$actual_output" || true
-        else
-            log_info "Output matches expected for $example"
         fi
     else
         # New expected output file
