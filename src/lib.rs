@@ -1,6 +1,9 @@
 use proc_macro::TokenStream;
-use quote::quote;
-use syn::{Expr, ExprCall, FnArg, ItemFn, Pat, parse_macro_input, visit_mut::VisitMut};
+use quote::{ToTokens, quote};
+use syn::{
+    Expr, ExprCall, FnArg, ItemFn, Pat, parse_macro_input,
+    visit_mut::{self, VisitMut},
+};
 
 struct RecursionTransformer {
     fn_name: syn::Ident,
@@ -19,6 +22,44 @@ impl VisitMut for RecursionTransformer {
         }
 
         syn::visit_mut::visit_expr_call_mut(self, call);
+    }
+}
+
+struct PrintlnRewriter;
+
+impl VisitMut for PrintlnRewriter {
+    fn visit_macro_mut(&mut self, mac: &mut syn::Macro) {
+        let path = mac.path.to_token_stream().to_string();
+        let tokens = &mac.tokens;
+        match path.as_str() {
+            "println" => {
+                *mac = syn::parse_quote! {
+                    println!("[HEADER] {}", format_args!(#tokens))
+                };
+            }
+            "eprintln" => {
+                *mac = syn::parse_quote! {
+                    eprintln!("[HEADER] {}", format_args!(#tokens))
+                };
+            }
+            "print" => {
+                *mac = syn::parse_quote! {
+                    print!("[HEADER] {}", format_args!(#tokens))
+                };
+            }
+            "eprint" => {
+                *mac = syn::parse_quote! {
+                    eprint!("[HEADER] {}", format_args!(#tokens))
+                };
+            }
+            "dbg" => {
+                *mac = syn::parse_quote! {
+                    println!("[HEADER] dbg: {:?}", #tokens)
+                };
+            }
+            _ => {}
+        }
+        visit_mut::visit_macro_mut(self, mac);
     }
 }
 
@@ -66,6 +107,9 @@ pub fn lg_recur(_attr: TokenStream, item: TokenStream) -> TokenStream {
     };
     transformer.visit_block_mut(&mut fn_block);
 
+    let mut transformer = PrintlnRewriter;
+    transformer.visit_block_mut(&mut fn_block);
+
     let expanded = quote! {
         fn #fn_name(#outer_fn_args) #fn_return_type {
             fn inner(#fn_args, __lg_recur_level: usize) #fn_return_type {
@@ -96,4 +140,12 @@ pub fn lg_recur(_attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
     TokenStream::from(expanded)
+}
+
+#[proc_macro_attribute]
+pub fn with_log_header(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let mut func = parse_macro_input!(item as ItemFn);
+    let mut transformer = PrintlnRewriter;
+    transformer.visit_item_fn_mut(&mut func);
+    quote!(#func).into()
 }
