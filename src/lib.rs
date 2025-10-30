@@ -33,6 +33,7 @@ use codegen::CodeGenerator;
 /// # Options
 ///
 /// - `no_return`: Disable return value output
+/// - `recursion_limit = N`: Set maximum recursion depth limit (must be > 0)
 ///
 /// ```rust,no_run
 /// use procon_lg::lg_recur;
@@ -41,6 +42,20 @@ use codegen::CodeGenerator;
 ///
 /// #[lg_recur(no_return)]
 /// fn some_function(x: i32) -> SomeType {
+///     SomeType
+/// }
+///
+/// #[lg_recur(recursion_limit = 100)]
+/// fn fibonacci(n: u32) -> u32 {
+///     if n <= 1 {
+///         1
+///     } else {
+///         fibonacci(n - 1) + fibonacci(n - 2)
+///     }
+/// }
+///
+/// #[lg_recur(no_return, recursion_limit = 50)]
+/// fn limited_function(x: i32) -> SomeType {
 ///     SomeType
 /// }
 /// ```

@@ -74,9 +74,21 @@ impl CodeGenerator {
             })
             .collect();
 
+        let recursion_check = if let Some(limit) = self.macro_args.recursion_limit {
+            quote! {
+                if __lg_recur_level >= #limit {
+                    panic!("Recursion limit exceeded: {} reached maximum depth of {}", stringify!(#fn_name), #limit);
+                }
+            }
+        } else {
+            quote! {}
+        };
+
         quote! {
             #fn_vis #fn_unsafety fn #fn_name #impl_generics (#outer_fn_args) #fn_return_type #where_clause {
                 #fn_unsafety fn __procon_lg_recurse #impl_generics (#inner_fn_args, __lg_recur_level: usize) #fn_return_type #where_clause {
+                    #recursion_check
+
                     let mut args_str = String::new();
                     #(#arg_format_exprs)*
 
