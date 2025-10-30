@@ -16,6 +16,9 @@ impl CodeGenerator {
     pub fn generate(&self) -> proc_macro2::TokenStream {
         let fn_name = &self.input_fn.sig.ident;
         let fn_return_type = &self.input_fn.sig.output;
+        let fn_unsafety = &self.input_fn.sig.unsafety;
+        let fn_generics = &self.input_fn.sig.generics;
+        let fn_vis = &self.input_fn.vis;
         let mut fn_block = self.input_fn.block.clone();
 
         // Do the below:
@@ -30,6 +33,8 @@ impl CodeGenerator {
         let all_arg_names = self.extract_all_arg_names();
         let outer_fn_args = self.create_outer_fn_args();
         let inner_fn_args = self.create_inner_fn_args();
+
+        let (impl_generics, _, where_clause) = fn_generics.split_for_impl();
 
         let return_output = if show_return {
             quote! {
@@ -70,8 +75,8 @@ impl CodeGenerator {
             .collect();
 
         quote! {
-            fn #fn_name(#outer_fn_args) #fn_return_type {
-                fn __procon_lg_recurse(#inner_fn_args, __lg_recur_level: usize) #fn_return_type {
+            #fn_vis #fn_unsafety fn #fn_name #impl_generics (#outer_fn_args) #fn_return_type #where_clause {
+                #fn_unsafety fn __procon_lg_recurse #impl_generics (#inner_fn_args, __lg_recur_level: usize) #fn_return_type #where_clause {
                     let mut args_str = String::new();
                     #(#arg_format_exprs)*
 
