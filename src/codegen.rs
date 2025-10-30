@@ -60,7 +60,7 @@ impl CodeGenerator {
                         if !args_str.is_empty() {
                             args_str.push_str(", ");
                         }
-                        args_str.push_str(&format!("{}", #format_expr));
+                        std::fmt::Write::write_fmt(&mut args_str, format_args!("{}", #format_expr)).unwrap();
                     }
                 } else {
                     let arg_name_str = ident.to_string();
@@ -68,7 +68,7 @@ impl CodeGenerator {
                         if !args_str.is_empty() {
                             args_str.push_str(", ");
                         }
-                        args_str.push_str(&format!("{}:{}", #arg_name_str, #format_expr));
+                        std::fmt::Write::write_fmt(&mut args_str, format_args!("{}:{}", #arg_name_str, #format_expr)).unwrap();
                     }
                 }
             })
