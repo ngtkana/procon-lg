@@ -1,7 +1,7 @@
 use procon_lg::lg_recur;
 
 mod test_module {
-    use super::*;
+    use super::lg_recur;
 
     #[lg_recur]
     pub fn public_factorial(n: u32) -> u32 {

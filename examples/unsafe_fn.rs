@@ -12,5 +12,5 @@ unsafe fn unsafe_sum(#[no_debug] ptr: *const i32, len: usize) -> i32 {
 fn main() {
     let data = [1, 2, 3, 4, 5];
     let result = unsafe { unsafe_sum(data.as_ptr(), data.len()) };
-    println!("{}", result);
+    println!("{result}");
 }
