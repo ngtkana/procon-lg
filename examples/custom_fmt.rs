@@ -35,10 +35,10 @@ fn main() {
             right: null_mut(),
         })
         .collect::<Vec<_>>();
-    nodes[2].left = &mut nodes[0];
-    nodes[0].right = &mut nodes[1];
-    nodes[2].right = &mut nodes[3];
-    nodes[3].right = &mut nodes[5];
-    nodes[5].left = &mut nodes[4];
+    nodes[2].left = &raw mut nodes[0];
+    nodes[0].right = &raw mut nodes[1];
+    nodes[2].right = &raw mut nodes[3];
+    nodes[3].right = &raw mut nodes[5];
+    nodes[5].left = &raw mut nodes[4];
     traversal(&nodes[2], 1);
 }
