@@ -13,6 +13,7 @@ pub struct CodeGenerator {
 
 impl CodeGenerator {
     /// Generate complete code
+    #[allow(clippy::too_many_lines)]
     pub fn generate(&self) -> proc_macro2::TokenStream {
         let fn_name = &self.input_fn.sig.ident;
         let fn_return_type = &self.input_fn.sig.output;
@@ -86,6 +87,39 @@ impl CodeGenerator {
 
         quote! {
             #fn_vis #fn_unsafety fn #fn_name #impl_generics (#outer_fn_args) #fn_return_type #where_clause {
+                macro_rules! __lg_print_multiline {
+                    ($print_macro:ident, $level:expr, $($args:tt)*) => {
+                        {
+                            let __lg_formatted = format!($($args)*);
+                            for __lg_line in __lg_formatted.lines() {
+                                $print_macro!("{}{}", "│".repeat($level + 1), __lg_line);
+                            }
+                            if __lg_formatted.ends_with('\n') {
+                                $print_macro!("{}", "│".repeat($level + 1));
+                            }
+                        }
+                    };
+                }
+
+                macro_rules! __lg_print_multiline_no_newline {
+                    ($print_macro:ident, $level:expr, $($args:tt)*) => {
+                        {
+                            let __lg_formatted = format!($($args)*);
+                            let __lg_lines: Vec<&str> = __lg_formatted.lines().collect();
+                            for (i, __lg_line) in __lg_lines.iter().enumerate() {
+                                if i == 0 {
+                                    $print_macro!("{}{}", "│".repeat($level + 1), __lg_line);
+                                } else {
+                                    $print_macro!("\n{}{}", "│".repeat($level + 1), __lg_line);
+                                }
+                            }
+                            if __lg_formatted.ends_with('\n') {
+                                $print_macro!("\n{}", "│".repeat($level + 1));
+                            }
+                        }
+                    };
+                }
+
                 #fn_unsafety fn __procon_lg_recurse #impl_generics (#inner_fn_args, __lg_recur_level: usize) #fn_return_type #where_clause {
                     #recursion_check
 

@@ -60,7 +60,7 @@ fn transform_println_macro(tokens: &proc_macro2::TokenStream) -> syn::Macro {
         }
     } else {
         syn::parse_quote! {
-            println!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
+            __lg_print_multiline!(println, __lg_recur_level, #tokens)
         }
     }
 }
@@ -73,7 +73,7 @@ fn transform_eprintln_macro(tokens: &proc_macro2::TokenStream) -> syn::Macro {
         }
     } else {
         syn::parse_quote! {
-            eprintln!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
+            __lg_print_multiline!(eprintln, __lg_recur_level, #tokens)
         }
     }
 }
@@ -86,7 +86,7 @@ fn transform_print_macro(tokens: &proc_macro2::TokenStream) -> syn::Macro {
         }
     } else {
         syn::parse_quote! {
-            print!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
+            __lg_print_multiline_no_newline!(print, __lg_recur_level, #tokens)
         }
     }
 }
@@ -99,7 +99,7 @@ fn transform_eprint_macro(tokens: &proc_macro2::TokenStream) -> syn::Macro {
         }
     } else {
         syn::parse_quote! {
-            eprint!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!(#tokens))
+            __lg_print_multiline_no_newline!(eprint, __lg_recur_level, #tokens)
         }
     }
 }
@@ -162,10 +162,33 @@ mod tests {
 
         let expected: Block = parse_quote! {
             {
-                println!("{}{}", "│".repeat(__lg_recur_level + 1), format_args!("computing value for {}", n));
+                __lg_print_multiline!(println, __lg_recur_level, "computing value for {}", n);
                 let result = 42;
                 println!("{}", "│".repeat(__lg_recur_level + 1));
                 result
+            }
+        };
+
+        assert_eq!(quote!(#block).to_string(), quote!(#expected).to_string());
+    }
+
+    #[test]
+    fn test_multiline_println() {
+        let mut visitor = Visitor {
+            fn_name: &parse_quote!(test_fn),
+        };
+
+        let mut block: Block = parse_quote! {
+            {
+                println!("line1\nline2\nline3");
+            }
+        };
+
+        visitor.visit_block_mut(&mut block);
+
+        let expected: Block = parse_quote! {
+            {
+                __lg_print_multiline!(println, __lg_recur_level, "line1\nline2\nline3");
             }
         };
 
