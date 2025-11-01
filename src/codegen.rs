@@ -12,32 +12,62 @@ pub struct CodeGenerator {
 }
 
 impl CodeGenerator {
-    /// Generate complete code
-    #[allow(clippy::too_many_lines)]
-    pub fn generate(&self) -> proc_macro2::TokenStream {
-        let fn_name = &self.input_fn.sig.ident;
-        let fn_return_type = &self.input_fn.sig.output;
-        let fn_unsafety = &self.input_fn.sig.unsafety;
-        let fn_generics = &self.input_fn.sig.generics;
-        let fn_vis = &self.input_fn.vis;
-        let mut fn_block = self.input_fn.block.clone();
+    /// Generate helper macros for multiline print support
+    fn generate_helper_macros() -> proc_macro2::TokenStream {
+        quote! {
+            macro_rules! __lg_print_multiline {
+                ($print_macro:ident, $level:expr, $($args:tt)*) => {
+                    {
+                        let __lg_formatted = format!($($args)*);
+                        for __lg_line in __lg_formatted.lines() {
+                            $print_macro!("{}{}", "│".repeat($level + 1), __lg_line);
+                        }
+                        if __lg_formatted.ends_with('\n') {
+                            $print_macro!("{}", "│".repeat($level + 1));
+                        }
+                    }
+                };
+            }
 
-        // Do the below:
-        // 1. Transform recursive calls
-        // 2. Transform print-like macros
-        let mut visitor = Visitor { fn_name };
-        visitor.visit_block_mut(&mut fn_block);
+            macro_rules! __lg_print_multiline_no_newline {
+                ($print_macro:ident, $level:expr, $($args:tt)*) => {
+                    {
+                        let __lg_formatted = format!($($args)*);
+                        let __lg_lines: Vec<&str> = __lg_formatted.lines().collect();
+                        for (i, __lg_line) in __lg_lines.iter().enumerate() {
+                            if i == 0 {
+                                $print_macro!("{}{}", "│".repeat($level + 1), __lg_line);
+                            } else {
+                                $print_macro!("\n{}{}", "│".repeat($level + 1), __lg_line);
+                            }
+                        }
+                        if __lg_formatted.ends_with('\n') {
+                            $print_macro!("\n{}", "│".repeat($level + 1));
+                        }
+                    }
+                };
+            }
+        }
+    }
 
+    /// Generate recursion depth check
+    fn generate_recursion_check(&self, fn_name: &syn::Ident) -> proc_macro2::TokenStream {
+        if let Some(limit) = self.macro_args.recursion_limit {
+            quote! {
+                if __lg_recur_level >= #limit {
+                    panic!("Recursion limit exceeded: {} reached maximum depth of {}", stringify!(#fn_name), #limit);
+                }
+            }
+        } else {
+            quote! {}
+        }
+    }
+
+    /// Generate return value output
+    fn generate_return_output(&self, fn_return_type: &syn::ReturnType) -> proc_macro2::TokenStream {
         let show_return = !self.macro_args.no_return && !is_unit_return_type(fn_return_type);
 
-        let printable_args = self.extract_printable_args();
-        let all_arg_names = self.extract_all_arg_names();
-        let outer_fn_args = self.create_outer_fn_args();
-        let inner_fn_args = self.create_inner_fn_args();
-
-        let (impl_generics, _, where_clause) = fn_generics.split_for_impl();
-
-        let return_output = if show_return {
+        if show_return {
             quote! {
                 eprintln!(
                     "{}└ {:?}",
@@ -49,10 +79,14 @@ impl CodeGenerator {
             quote! {
                 // Return value output is disabled
             }
-        };
+        }
+    }
 
-        // Generate custom format expressions
-        let arg_format_exprs: Vec<_> = printable_args
+    /// Generate argument format expressions
+    fn generate_arg_format_expressions(&self) -> Vec<proc_macro2::TokenStream> {
+        let printable_args = self.extract_printable_args();
+
+        printable_args
             .iter()
             .map(|(ident, arg_type, attrs)| {
                 let format_expr = attrs.generate_format_tokens(ident, arg_type);
@@ -73,52 +107,38 @@ impl CodeGenerator {
                     }
                 }
             })
-            .collect();
+            .collect()
+    }
 
-        let recursion_check = if let Some(limit) = self.macro_args.recursion_limit {
-            quote! {
-                if __lg_recur_level >= #limit {
-                    panic!("Recursion limit exceeded: {} reached maximum depth of {}", stringify!(#fn_name), #limit);
-                }
-            }
-        } else {
-            quote! {}
-        };
+    /// Generate complete code
+    pub fn generate(&self) -> proc_macro2::TokenStream {
+        let fn_name = &self.input_fn.sig.ident;
+        let fn_return_type = &self.input_fn.sig.output;
+        let fn_unsafety = &self.input_fn.sig.unsafety;
+        let fn_generics = &self.input_fn.sig.generics;
+        let fn_vis = &self.input_fn.vis;
+        let mut fn_block = self.input_fn.block.clone();
+
+        // Transform recursive calls and print-like macros
+        let mut visitor = Visitor { fn_name };
+        visitor.visit_block_mut(&mut fn_block);
+
+        // Extract argument information
+        let all_arg_names = self.extract_all_arg_names();
+        let outer_fn_args = self.create_outer_fn_args();
+        let inner_fn_args = self.create_inner_fn_args();
+
+        let (impl_generics, _, where_clause) = fn_generics.split_for_impl();
+
+        // Generate code components
+        let helper_macros = Self::generate_helper_macros();
+        let recursion_check = self.generate_recursion_check(fn_name);
+        let return_output = self.generate_return_output(fn_return_type);
+        let arg_format_exprs = self.generate_arg_format_expressions();
 
         quote! {
             #fn_vis #fn_unsafety fn #fn_name #impl_generics (#outer_fn_args) #fn_return_type #where_clause {
-                macro_rules! __lg_print_multiline {
-                    ($print_macro:ident, $level:expr, $($args:tt)*) => {
-                        {
-                            let __lg_formatted = format!($($args)*);
-                            for __lg_line in __lg_formatted.lines() {
-                                $print_macro!("{}{}", "│".repeat($level + 1), __lg_line);
-                            }
-                            if __lg_formatted.ends_with('\n') {
-                                $print_macro!("{}", "│".repeat($level + 1));
-                            }
-                        }
-                    };
-                }
-
-                macro_rules! __lg_print_multiline_no_newline {
-                    ($print_macro:ident, $level:expr, $($args:tt)*) => {
-                        {
-                            let __lg_formatted = format!($($args)*);
-                            let __lg_lines: Vec<&str> = __lg_formatted.lines().collect();
-                            for (i, __lg_line) in __lg_lines.iter().enumerate() {
-                                if i == 0 {
-                                    $print_macro!("{}{}", "│".repeat($level + 1), __lg_line);
-                                } else {
-                                    $print_macro!("\n{}{}", "│".repeat($level + 1), __lg_line);
-                                }
-                            }
-                            if __lg_formatted.ends_with('\n') {
-                                $print_macro!("\n{}", "│".repeat($level + 1));
-                            }
-                        }
-                    };
-                }
+                #helper_macros
 
                 #fn_unsafety fn __procon_lg_recurse #impl_generics (#inner_fn_args, __lg_recur_level: usize) #fn_return_type #where_clause {
                     #recursion_check
