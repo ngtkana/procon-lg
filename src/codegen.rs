@@ -208,7 +208,7 @@ impl CodeGenerator {
                     if let Pat::Ident(ref mut pat_ident) = *new_pat_type.pat {
                         pat_ident.mutability = None; // Remove mut keyword
                     }
-                    // Remove custom attributes (no_debug, fmt)
+                    // Remove custom attributes (show)
                     new_pat_type.attrs.retain(|attr| !is_custom_attr(attr));
                     FnArg::Typed(new_pat_type)
                 } else {
@@ -253,5 +253,5 @@ fn is_unit_return_type(return_type: &ReturnType) -> bool {
 }
 
 fn is_custom_attr(attr: &Attribute) -> bool {
-    attr.path().is_ident("fmt")
+    attr.path().is_ident("show")
 }

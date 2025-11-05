@@ -1,7 +1,7 @@
 use procon_lg::lg_recur;
 
 #[lg_recur]
-fn countdown(#[fmt] count: u32) {
+fn countdown(#[show] count: u32) {
     if count == 0 {
         println!("Bang!");
     } else {

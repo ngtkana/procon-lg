@@ -4,7 +4,7 @@ mod test_module {
     use super::lg_recur;
 
     #[lg_recur]
-    pub fn public_factorial(#[fmt] n: u32) -> u32 {
+    pub fn public_factorial(#[show] n: u32) -> u32 {
         if n <= 1 {
             1
         } else {

@@ -25,9 +25,8 @@ use macro_args::MacroArgs;
 ///
 /// # Attributes
 ///
-/// - `#[no_debug]`: Exclude specific arguments from debug output
-/// - `#[fmt(closure)]`: Use custom formatter for argument display
-/// - `#[no_name]`: Hide argument name (only show value, not "arg=value")
+/// - `#[show]`: Include argument in debug output with default formatting
+/// - `#[show(expr)]`: Include argument in debug output with custom formatter expression
 #[proc_macro_attribute]
 pub fn lg_recur(attr: TokenStream, item: TokenStream) -> TokenStream {
     let macro_args: MacroArgs = if attr.is_empty() {

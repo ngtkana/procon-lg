@@ -1,7 +1,7 @@
 use procon_lg::lg_recur;
 
 #[lg_recur]
-fn generic_gcd<T>(#[fmt] a: T, #[fmt] b: T) -> T
+fn generic_gcd<T>(#[show] a: T, #[show] b: T) -> T
 where
     T: std::cmp::PartialEq + std::ops::Rem<Output = T> + Copy + Default + std::fmt::Debug,
 {

@@ -10,7 +10,7 @@ struct Node {
 }
 
 #[lg_recur]
-fn traversal(#[fmt(root.key)] root: &Node, #[fmt(format!("{:b}", code))] code: u32) {
+fn traversal(#[show(root.key)] root: &Node, #[show(format!("{:b}", code))] code: u32) {
     unsafe {
         if let Some(left) = root.left.as_ref() {
             traversal(left, code << 1);

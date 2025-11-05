@@ -179,7 +179,7 @@ impl CodeGenerator {
             .map(|arg| {
                 if let FnArg::Typed(pat_type) = arg {
                     let mut new_pat_type = pat_type.clone();
-                    // Remove custom attributes (no_debug, fmt)
+                    // Remove custom attributes (show)
                     new_pat_type.attrs.retain(|attr| !is_custom_attr(attr));
                     FnArg::Typed(new_pat_type)
                 } else {
@@ -191,5 +191,5 @@ impl CodeGenerator {
 }
 
 fn is_custom_attr(attr: &Attribute) -> bool {
-    attr.path().is_ident("fmt")
+    attr.path().is_ident("show")
 }

@@ -218,7 +218,7 @@ main() {
         local basename
         basename=$(basename "$file" .rs)
         examples+=("$basename")
-    done < <(find examples -name "*.rs" -print0)
+    done < <(find procon-lg/examples -name "*.rs" -print0)
     
     if [ ${#examples[@]} -eq 0 ]; then
         log_error "No examples found in examples/ directory"

@@ -6,8 +6,8 @@
 #![feature(proc_macro_hygiene)]
 
 mod arg_attrs;
-mod args;
 mod codegen;
+mod macro_args;
 mod visitor;
 
 use proc_macro::TokenStream;
@@ -54,8 +54,8 @@ use codegen::CodeGenerator;
 ///
 /// By default, no arguments or return values are printed. Use these attributes to opt-in:
 ///
-/// - `#[fmt]`: Include specific arguments in debug output with default formatting
-/// - `#[fmt(expr)]`: Include specific arguments with custom formatter
+/// - `#[show]`: Include specific arguments in debug output with default formatting
+/// - `#[show(expr)]`: Include specific arguments with custom formatter
 ///
 /// ```rust,no_run
 /// use procon_lg::lg_recur;
@@ -64,9 +64,9 @@ use codegen::CodeGenerator;
 ///
 /// #[lg_recur]
 /// fn process(
-///     #[fmt] count: i32,
-///     #[fmt(node.key)] node: &Node,
-///     #[fmt(format!("0x{:x}", hex_value))] hex_value: u32,
+///     #[show] count: i32,
+///     #[show(node.key)] node: &Node,
+///     #[show(format!("0x{:x}", hex_value))] hex_value: u32,
 ///     hidden_arg: u32,  // This will not be printed
 /// ) {
 ///     // Only count, node.key, and hex_value (in hex format) will be printed

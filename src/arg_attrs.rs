@@ -21,7 +21,7 @@ impl ArgAttributes {
         let mut parsed_attrs = Vec::new();
 
         for attr in attrs {
-            if attr.path().is_ident("fmt") {
+            if attr.path().is_ident("show") {
                 if let Ok(formatter) = attr.parse_args::<Expr>() {
                     parsed_attrs.push(ArgAttribute::ShowWithFormat { formatter });
                 } else {
@@ -81,7 +81,7 @@ mod tests {
 
     #[test]
     fn test_fmt_with_expression() {
-        let attr: Attribute = parse_quote!(#[fmt(format!("0x{:x}", value))]);
+        let attr: Attribute = parse_quote!(#[show(format!("0x{:x}", value))]);
         let attrs = ArgAttributes::from_attrs(&[attr]).unwrap();
         let value_: syn::Ident = parse_quote!(value);
         let value_type: syn::Type = parse_quote!(i32);
@@ -94,7 +94,7 @@ mod tests {
 
     #[test]
     fn test_fmt_with_field_access() {
-        let attr: Attribute = parse_quote!(#[fmt(node.key)]);
+        let attr: Attribute = parse_quote!(#[show(node.key)]);
         let attrs = ArgAttributes::from_attrs(&[attr]).unwrap();
         let node_: syn::Ident = parse_quote!(node);
         let node_type: syn::Type = parse_quote!(&Node);
@@ -107,7 +107,7 @@ mod tests {
 
     #[test]
     fn test_basic_fmt() {
-        let attr: Attribute = parse_quote!(#[fmt]);
+        let attr: Attribute = parse_quote!(#[show]);
         let attrs = ArgAttributes::from_attrs(&[attr]).unwrap();
         let value_: syn::Ident = parse_quote!(value);
         let value_type: syn::Type = parse_quote!(i32);

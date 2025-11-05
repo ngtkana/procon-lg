@@ -1,7 +1,7 @@
 use procon_lg::lg_recur;
 
 #[lg_recur]
-fn gcd(#[fmt] mut x: u32, #[fmt] mut y: u32) -> u32 {
+fn gcd(#[show] mut x: u32, #[show] mut y: u32) -> u32 {
     if x < y {
         std::mem::swap(&mut x, &mut y);
     }

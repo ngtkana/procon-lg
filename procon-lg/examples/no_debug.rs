@@ -1,7 +1,7 @@
 use procon_lg::lg_recur;
 
 #[lg_recur]
-fn count_down(hidden_arg: HiddenType, #[fmt] count: u32, #[fmt] print_me: u32) -> HiddenType {
+fn count_down(hidden_arg: HiddenType, #[show] count: u32, #[show] print_me: u32) -> HiddenType {
     if count == 0 {
         println!("Bang!");
         HiddenType(42)

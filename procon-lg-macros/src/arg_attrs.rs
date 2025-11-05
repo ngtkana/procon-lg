@@ -4,10 +4,10 @@ use syn::{Attribute, Expr};
 /// Represents different types of argument attributes
 #[derive(Clone)]
 pub enum ArgAttribute {
-    /// #\[fmt\] - Include in debug output with default formatting
-    Fmt,
-    /// #\[fmt(expr)\] - Include in debug output with custom formatter
-    FmtWithExpression { formatter: Expr },
+    /// #\[show\] - Include in debug output with default formatting
+    Show,
+    /// #\[show(expr)\] - Include in debug output with custom formatter
+    ShowWithExpression { formatter: Expr },
 }
 
 /// Parsed argument attributes
@@ -21,11 +21,11 @@ impl ArgAttributes {
         let mut parsed_attrs = Vec::new();
 
         for attr in attrs {
-            if attr.path().is_ident("fmt") {
+            if attr.path().is_ident("show") {
                 if let Ok(formatter) = attr.parse_args::<Expr>() {
-                    parsed_attrs.push(ArgAttribute::FmtWithExpression { formatter });
+                    parsed_attrs.push(ArgAttribute::ShowWithExpression { formatter });
                 } else {
-                    parsed_attrs.push(ArgAttribute::Fmt);
+                    parsed_attrs.push(ArgAttribute::Show);
                 }
             }
         }
@@ -43,7 +43,7 @@ impl ArgAttributes {
     /// Get custom formatter (first one found)
     pub fn get_custom_formatter(&self) -> Option<&Expr> {
         self.attrs.iter().find_map(|attr| {
-            if let ArgAttribute::FmtWithExpression { formatter } = attr {
+            if let ArgAttribute::ShowWithExpression { formatter } = attr {
                 Some(formatter)
             } else {
                 None
@@ -77,8 +77,8 @@ mod tests {
     use syn::parse_quote;
 
     #[test]
-    fn test_fmt_with_expression() {
-        let attr: Attribute = parse_quote!(#[fmt(format!("0x{:x}", value))]);
+    fn test_show_with_expression() {
+        let attr: Attribute = parse_quote!(#[show(format!("0x{:x}", value))]);
         let attrs = ArgAttributes::from_attrs(&[attr]);
         let value_: syn::Ident = parse_quote!(value);
         let value_type: syn::Type = parse_quote!(i32);
@@ -90,8 +90,8 @@ mod tests {
     }
 
     #[test]
-    fn test_fmt_with_field_access() {
-        let attr: Attribute = parse_quote!(#[fmt(node.key)]);
+    fn test_show_with_field_access() {
+        let attr: Attribute = parse_quote!(#[show(node.key)]);
         let attrs = ArgAttributes::from_attrs(&[attr]);
         let node_: syn::Ident = parse_quote!(node);
         let node_type: syn::Type = parse_quote!(&Node);
@@ -103,8 +103,8 @@ mod tests {
     }
 
     #[test]
-    fn test_basic_fmt() {
-        let attr: Attribute = parse_quote!(#[fmt]);
+    fn test_basic_show() {
+        let attr: Attribute = parse_quote!(#[show]);
         let attrs = ArgAttributes::from_attrs(&[attr]);
         let value_: syn::Ident = parse_quote!(value);
         let value_type: syn::Type = parse_quote!(i32);
@@ -116,7 +116,7 @@ mod tests {
     }
 
     #[test]
-    fn test_no_fmt() {
+    fn test_no_show() {
         let attrs = ArgAttributes::from_attrs(&[]);
         assert!(!attrs.should_print());
     }
