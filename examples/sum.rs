@@ -1,7 +1,7 @@
 use procon_lg::lg_recur;
 
 #[lg_recur]
-fn sum(a: &[u32]) -> u32 {
+fn sum(#[fmt] a: &[u32]) -> u32 {
     let n = a.len();
     match n {
         0 => 0,

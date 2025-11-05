@@ -1,15 +1,13 @@
 use proc_macro2::TokenStream;
-use syn::{Attribute, Expr, Result};
+use syn::{Attribute, Expr};
 
 /// Represents different types of argument attributes
 #[derive(Clone)]
 pub enum ArgAttribute {
-    /// #\[no_debug]] - Exclude from debug output
-    NoDebug,
-    /// #\[fmt(closure-impl)\] - Use custom formatter
-    Fmt { formatter: Expr },
-    /// #\[no_name\] - Don't show argument name (e.g., "arg=" part)
-    NoName,
+    /// #\[fmt\] - Include in debug output with default formatting
+    Fmt,
+    /// #\[fmt(expr)\] - Include in debug output with custom formatter
+    FmtWithExpression { formatter: Expr },
 }
 
 /// Parsed argument attributes
@@ -19,44 +17,33 @@ pub struct ArgAttributes {
 
 impl ArgAttributes {
     /// Create ArgAttributes from attribute list
-    pub fn from_attrs(attrs: &[Attribute]) -> Result<Self> {
+    pub fn from_attrs(attrs: &[Attribute]) -> Self {
         let mut parsed_attrs = Vec::new();
 
         for attr in attrs {
-            if attr.path().is_ident("no_debug") {
-                parsed_attrs.push(ArgAttribute::NoDebug);
-            } else if attr.path().is_ident("fmt") {
-                let formatter = attr.parse_args::<Expr>()?;
-                parsed_attrs.push(ArgAttribute::Fmt { formatter });
-            } else if attr.path().is_ident("no_name") {
-                parsed_attrs.push(ArgAttribute::NoName);
+            if attr.path().is_ident("fmt") {
+                if let Ok(formatter) = attr.parse_args::<Expr>() {
+                    parsed_attrs.push(ArgAttribute::FmtWithExpression { formatter });
+                } else {
+                    parsed_attrs.push(ArgAttribute::Fmt);
+                }
             }
         }
 
-        Ok(ArgAttributes {
+        ArgAttributes {
             attrs: parsed_attrs,
-        })
+        }
     }
 
-    /// Check if this argument should be included in debug output
-    pub fn should_include_in_debug(&self) -> bool {
-        !self
-            .attrs
-            .iter()
-            .any(|attr| matches!(attr, ArgAttribute::NoDebug))
-    }
-
-    /// Check if argument name should be hidden
-    pub fn should_hide_name(&self) -> bool {
-        self.attrs
-            .iter()
-            .any(|attr| matches!(attr, ArgAttribute::NoName))
+    /// Check if this argument should be printed
+    pub fn should_print(&self) -> bool {
+        !self.attrs.is_empty()
     }
 
     /// Get custom formatter (first one found)
     pub fn get_custom_formatter(&self) -> Option<&Expr> {
         self.attrs.iter().find_map(|attr| {
-            if let ArgAttribute::Fmt { formatter } = attr {
+            if let ArgAttribute::FmtWithExpression { formatter } = attr {
                 Some(formatter)
             } else {
                 None
@@ -92,7 +79,7 @@ mod tests {
     #[test]
     fn test_fmt_with_expression() {
         let attr: Attribute = parse_quote!(#[fmt(format!("0x{:x}", value))]);
-        let attrs = ArgAttributes::from_attrs(&[attr]).unwrap();
+        let attrs = ArgAttributes::from_attrs(&[attr]);
         let value_: syn::Ident = parse_quote!(value);
         let value_type: syn::Type = parse_quote!(i32);
         let result = attrs.generate_format_tokens(&value_, &value_type);
@@ -105,7 +92,7 @@ mod tests {
     #[test]
     fn test_fmt_with_field_access() {
         let attr: Attribute = parse_quote!(#[fmt(node.key)]);
-        let attrs = ArgAttributes::from_attrs(&[attr]).unwrap();
+        let attrs = ArgAttributes::from_attrs(&[attr]);
         let node_: syn::Ident = parse_quote!(node);
         let node_type: syn::Type = parse_quote!(&Node);
         let result = attrs.generate_format_tokens(&node_, &node_type);
@@ -116,8 +103,9 @@ mod tests {
     }
 
     #[test]
-    fn test_no_fmt() {
-        let attrs = ArgAttributes::from_attrs(&[]).unwrap();
+    fn test_basic_fmt() {
+        let attr: Attribute = parse_quote!(#[fmt]);
+        let attrs = ArgAttributes::from_attrs(&[attr]);
         let value_: syn::Ident = parse_quote!(value);
         let value_type: syn::Type = parse_quote!(i32);
         let result = attrs.generate_format_tokens(&value_, &value_type);
@@ -125,5 +113,11 @@ mod tests {
             format!("{:?}", value)
         };
         assert_eq!(result.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn test_no_fmt() {
+        let attrs = ArgAttributes::from_attrs(&[]);
+        assert!(!attrs.should_print());
     }
 }

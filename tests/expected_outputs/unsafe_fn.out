@@ -4,10 +4,4 @@ unsafe_sum(len:5)
 │││├unsafe_sum(len:2)
 ││││├unsafe_sum(len:1)
 │││││├unsafe_sum(len:0)
-│││││└ 0
-││││└ 5
-│││└ 9
-││└ 12
-│└ 14
-└ 15
 15

@@ -64,21 +64,13 @@ impl CodeGenerator {
     }
 
     /// Generate return value output
-    fn generate_return_output(&self, fn_return_type: &syn::ReturnType) -> proc_macro2::TokenStream {
-        let show_return = !self.macro_args.no_return && !is_unit_return_type(fn_return_type);
-
-        if show_return {
-            quote! {
-                eprintln!(
-                    "{}└ {:?}",
-                    "│".repeat(__lg_recur_level),
-                    ans
-                );
-            }
-        } else {
-            quote! {
-                // Return value output is disabled
-            }
+    fn generate_return_output(
+        &self,
+        _fn_return_type: &syn::ReturnType,
+    ) -> proc_macro2::TokenStream {
+        // New behavior: return value is never shown by default
+        quote! {
+            // Return value output is disabled by default
         }
     }
 
@@ -90,21 +82,12 @@ impl CodeGenerator {
             .iter()
             .map(|(ident, arg_type, attrs)| {
                 let format_expr = attrs.generate_format_tokens(ident, arg_type);
-                if attrs.should_hide_name() {
-                    quote! {
-                        if !args_str.is_empty() {
-                            args_str.push_str(", ");
-                        }
-                        std::fmt::Write::write_fmt(&mut args_str, format_args!("{}", #format_expr)).unwrap();
+                let arg_name_str = ident.to_string();
+                quote! {
+                    if !args_str.is_empty() {
+                        args_str.push_str(", ");
                     }
-                } else {
-                    let arg_name_str = ident.to_string();
-                    quote! {
-                        if !args_str.is_empty() {
-                            args_str.push_str(", ");
-                        }
-                        std::fmt::Write::write_fmt(&mut args_str, format_args!("{}:{}", #arg_name_str, #format_expr)).unwrap();
-                    }
+                    std::fmt::Write::write_fmt(&mut args_str, format_args!("{}:{}", #arg_name_str, #format_expr)).unwrap();
                 }
             })
             .collect()
@@ -150,8 +133,9 @@ impl CodeGenerator {
                         eprintln!("{}({})", stringify!(#fn_name), args_str);
                     } else {
                         eprintln!(
-                            "{}├┬({})",
+                            "{}├{}({})",
                             "│".repeat(__lg_recur_level - 1),
+                            "├",
                             args_str
                         );
                     }
@@ -177,7 +161,7 @@ impl CodeGenerator {
                 if let FnArg::Typed(pat_type) = arg {
                     if let Pat::Ident(PatIdent { ident, .. }) = &*pat_type.pat {
                         let arg_attrs = ArgAttributes::from_attrs(&pat_type.attrs).ok()?;
-                        if arg_attrs.should_include_in_debug() {
+                        if arg_attrs.should_print() {
                             Some((ident, &*pat_type.ty, arg_attrs))
                         } else {
                             None
@@ -269,7 +253,5 @@ fn is_unit_return_type(return_type: &ReturnType) -> bool {
 }
 
 fn is_custom_attr(attr: &Attribute) -> bool {
-    attr.path().is_ident("no_debug")
-        || attr.path().is_ident("fmt")
-        || attr.path().is_ident("no_name")
+    attr.path().is_ident("fmt")
 }

@@ -3,9 +3,4 @@ public_factorial(n:5)
 ││├public_factorial(n:3)
 │││├public_factorial(n:2)
 ││││├public_factorial(n:1)
-││││└ 1
-│││└ 2
-││└ 6
-│└ 24
-└ 120
 120

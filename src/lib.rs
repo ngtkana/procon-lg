@@ -2,6 +2,9 @@
 //!
 //! A procedural macro library for debugging recursive functions in competitive programming
 
+#![allow(unused_attributes)]
+#![feature(proc_macro_hygiene)]
+
 mod arg_attrs;
 mod args;
 mod codegen;
@@ -32,18 +35,10 @@ use codegen::CodeGenerator;
 ///
 /// # Options
 ///
-/// - `no_return`: Disable return value output
 /// - `recursion_limit = N`: Set maximum recursion depth limit (must be > 0)
 ///
 /// ```rust,no_run
 /// use procon_lg::lg_recur;
-///
-/// struct SomeType;
-///
-/// #[lg_recur(no_return)]
-/// fn some_function(x: i32) -> SomeType {
-///     SomeType
-/// }
 ///
 /// #[lg_recur(recursion_limit = 100)]
 /// fn fibonacci(n: u32) -> u32 {
@@ -53,40 +48,31 @@ use codegen::CodeGenerator;
 ///         fibonacci(n - 1) + fibonacci(n - 2)
 ///     }
 /// }
-///
-/// #[lg_recur(no_return, recursion_limit = 50)]
-/// fn limited_function(x: i32) -> SomeType {
-///     SomeType
-/// }
 /// ```
 ///
 /// # Attributes
 ///
-/// - `#[no_debug]`: Exclude specific arguments from debug output
-/// - `#[fmt(closure)]`: Use custom formatter for argument display
-/// - `#[no_name]`: Hide argument name (only show value, not "arg=value")
+/// By default, no arguments or return values are printed. Use these attributes to opt-in:
+///
+/// - `#[fmt]`: Include specific arguments in debug output with default formatting
+/// - `#[fmt(expr)]`: Include specific arguments with custom formatter
 ///
 /// ```rust,no_run
 /// use procon_lg::lg_recur;
 ///
-/// struct Secret;
 /// struct Node { key: i32 }
 ///
 /// #[lg_recur]
 /// fn process(
-///     #[no_debug] secret: Secret,
+///     #[fmt] count: i32,
 ///     #[fmt(node.key)] node: &Node,
-///     #[fmt(format!("0x{:x}", hex_value))] #[no_name] hex_value: u32,
-///     #[no_name] count: i32,
+///     #[fmt(format!("0x{:x}", hex_value))] hex_value: u32,
+///     hidden_arg: u32,  // This will not be printed
 /// ) {
-///     // secret argument will not be included in debug output
-///     // node will be displayed using the custom formatter (showing only the key)
-///     // hex_value will be displayed in hexadecimal format without "hex_value=" prefix
-///     // count will be displayed without "count=" prefix
+///     // Only count, node.key, and hex_value (in hex format) will be printed
+///     // hidden_arg will not be included in debug output
 /// }
 /// ```
-///
-/// Multiple attributes can be combined on the same argument.
 #[proc_macro_attribute]
 pub fn lg_recur(attr: TokenStream, item: TokenStream) -> TokenStream {
     let macro_args = if attr.is_empty() {

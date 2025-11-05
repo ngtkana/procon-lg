@@ -1,7 +1,7 @@
 use procon_lg::lg_recur;
 
 #[lg_recur]
-fn countdown(#[no_debug] x: *const i32) {
+fn countdown(x: *const i32) {
     unsafe {
         if *x == 0 {
             println!("Bang!");

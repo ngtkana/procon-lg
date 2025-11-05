@@ -1,6 +1,6 @@
-test_basic(print_me:42)
-│├test_basic(print_me:52)
-││├test_basic(print_me:62)
-│││├test_basic(print_me:72)
+count_down(count:3, print_me:42)
+│├count_down(count:2, print_me:52)
+││├count_down(count:1, print_me:62)
+│││├count_down(count:0, print_me:72)
 ││││Bang!
 45

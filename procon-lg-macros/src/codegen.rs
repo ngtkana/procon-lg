@@ -1,7 +1,6 @@
 use quote::quote;
 use syn::visit_mut::VisitMut;
 use syn::{Attribute, FnArg, Pat, PatIdent};
-use syn::{ReturnType, Type};
 
 use crate::{arg_attrs::ArgAttributes, macro_args::MacroArgs, visitor::Visitor};
 
@@ -64,21 +63,10 @@ impl CodeGenerator {
     }
 
     /// Generate return value output
-    fn generate_return_output(&self, fn_return_type: &syn::ReturnType) -> proc_macro2::TokenStream {
-        let show_return = !self.macro_args.no_return && !is_unit_return_type(fn_return_type);
-
-        if show_return {
-            quote! {
-                eprintln!(
-                    "{}└ {:?}",
-                    "│".repeat(__procon_lg_depth_guard.current_depth()),
-                    ans
-                );
-            }
-        } else {
-            quote! {
-                // Return value output is disabled
-            }
+    fn generate_return_output(_fn_return_type: &syn::ReturnType) -> proc_macro2::TokenStream {
+        // New behavior: return value is never shown by default
+        quote! {
+            // Return value output is disabled by default
         }
     }
 
@@ -90,21 +78,12 @@ impl CodeGenerator {
             .iter()
             .map(|(ident, arg_type, attrs)| {
                 let format_expr = attrs.generate_format_tokens(ident, arg_type);
-                if attrs.should_hide_name() {
-                    quote! {
-                        if !args_str.is_empty() {
-                            args_str.push_str(", ");
-                        }
-                        std::fmt::Write::write_fmt(&mut args_str, format_args!("{}", #format_expr)).unwrap();
+                let arg_name_str = ident.to_string();
+                quote! {
+                    if !args_str.is_empty() {
+                        args_str.push_str(", ");
                     }
-                } else {
-                    let arg_name_str = ident.to_string();
-                    quote! {
-                        if !args_str.is_empty() {
-                            args_str.push_str(", ");
-                        }
-                        std::fmt::Write::write_fmt(&mut args_str, format_args!("{}:{}", #arg_name_str, #format_expr)).unwrap();
-                    }
+                    std::fmt::Write::write_fmt(&mut args_str, format_args!("{}:{}", #arg_name_str, #format_expr)).unwrap();
                 }
             })
             .collect()
@@ -131,7 +110,7 @@ impl CodeGenerator {
         // Generate code components
         let helper_macros = Self::generate_helper_macros();
         let recursion_check = self.generate_recursion_check(fn_name);
-        let return_output = self.generate_return_output(fn_return_type);
+        let return_output = Self::generate_return_output(fn_return_type);
         let arg_format_exprs = self.generate_arg_format_expressions();
 
         quote! {
@@ -175,8 +154,8 @@ impl CodeGenerator {
             .filter_map(|arg| {
                 if let FnArg::Typed(pat_type) = arg {
                     if let Pat::Ident(PatIdent { ident, .. }) = &*pat_type.pat {
-                        let arg_attrs = ArgAttributes::from_attrs(&pat_type.attrs).ok()?;
-                        if arg_attrs.should_include_in_debug() {
+                        let arg_attrs = ArgAttributes::from_attrs(&pat_type.attrs);
+                        if arg_attrs.should_print() {
                             Some((ident, &*pat_type.ty, arg_attrs))
                         } else {
                             None
@@ -211,21 +190,6 @@ impl CodeGenerator {
     }
 }
 
-fn is_unit_return_type(return_type: &ReturnType) -> bool {
-    match return_type {
-        ReturnType::Default => true,
-        ReturnType::Type(_, ty) => {
-            if let Type::Tuple(tuple) = &**ty {
-                tuple.elems.is_empty()
-            } else {
-                false
-            }
-        }
-    }
-}
-
 fn is_custom_attr(attr: &Attribute) -> bool {
-    attr.path().is_ident("no_debug")
-        || attr.path().is_ident("fmt")
-        || attr.path().is_ident("no_name")
+    attr.path().is_ident("fmt")
 }

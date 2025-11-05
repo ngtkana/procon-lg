@@ -1,7 +1,7 @@
 use procon_lg::lg_recur;
 
 #[lg_recur]
-unsafe fn unsafe_sum(#[no_debug] ptr: *const i32, len: usize) -> i32 {
+unsafe fn unsafe_sum(ptr: *const i32, #[fmt] len: usize) -> i32 {
     if len == 0 {
         0
     } else {
