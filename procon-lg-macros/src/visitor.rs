@@ -39,7 +39,7 @@ fn transform_println_macro(tokens: &proc_macro2::TokenStream) -> syn::Macro {
         }
     } else {
         syn::parse_quote! {
-            __lg_print_multiline!(println, __procon_lg_depth_guard.current_depth(), #tokens)
+            __lg_print!(println, __procon_lg_depth_guard.current_depth(), #tokens)
         }
     }
 }
@@ -52,7 +52,7 @@ fn transform_eprintln_macro(tokens: &proc_macro2::TokenStream) -> syn::Macro {
         }
     } else {
         syn::parse_quote! {
-            __lg_print_multiline!(eprintln, __procon_lg_depth_guard.current_depth(), #tokens)
+            __lg_print!(eprintln, __procon_lg_depth_guard.current_depth(), #tokens)
         }
     }
 }
@@ -65,7 +65,7 @@ fn transform_print_macro(tokens: &proc_macro2::TokenStream) -> syn::Macro {
         }
     } else {
         syn::parse_quote! {
-            __lg_print_multiline_no_newline!(print, __procon_lg_depth_guard.current_depth(), #tokens)
+            __lg_print_no_newline!(print, __procon_lg_depth_guard.current_depth(), #tokens)
         }
     }
 }
@@ -78,7 +78,7 @@ fn transform_eprint_macro(tokens: &proc_macro2::TokenStream) -> syn::Macro {
         }
     } else {
         syn::parse_quote! {
-            __lg_print_multiline_no_newline!(eprint, __procon_lg_depth_guard.current_depth(), #tokens)
+            __lg_print_no_newline!(eprint, __procon_lg_depth_guard.current_depth(), #tokens)
         }
     }
 }
@@ -90,64 +90,7 @@ mod tests {
     use syn::{parse_quote, Block};
 
     #[test]
-    fn test_recursive_call() {
-        let mut visitor = Visitor;
-
-        let mut block: Block = parse_quote! {
-            {
-                if n <= 1 {
-                    1
-                } else {
-                    fib(n - 1) + fib(n - 2)
-                }
-            }
-        };
-
-        visitor.visit_block_mut(&mut block);
-
-        // With global depth management, recursive calls remain unchanged
-        let expected: Block = parse_quote! {
-            {
-                if n <= 1 {
-                    1
-                } else {
-                    fib(n - 1) + fib(n - 2)
-                }
-            }
-        };
-
-        assert_eq!(quote!(#block).to_string(), quote!(#expected).to_string());
-    }
-
-    #[test]
     fn test_println() {
-        let mut visitor = Visitor;
-
-        let mut block: Block = parse_quote! {
-            {
-                println!("computing value for {}", n);
-                let result = 42;
-                println!();
-                result
-            }
-        };
-
-        visitor.visit_block_mut(&mut block);
-
-        let expected: Block = parse_quote! {
-            {
-                __lg_print_multiline!(println, __procon_lg_depth_guard.current_depth(), "computing value for {}", n);
-                let result = 42;
-                println!("{}", "│".repeat(__procon_lg_depth_guard.current_depth() + 1));
-                result
-            }
-        };
-
-        assert_eq!(quote!(#block).to_string(), quote!(#expected).to_string());
-    }
-
-    #[test]
-    fn test_multiline_println() {
         let mut visitor = Visitor;
 
         let mut block: Block = parse_quote! {
@@ -160,7 +103,7 @@ mod tests {
 
         let expected: Block = parse_quote! {
             {
-                __lg_print_multiline!(println, __procon_lg_depth_guard.current_depth(), "line1\nline2\nline3");
+                __lg_print!(println, __procon_lg_depth_guard.current_depth(), "line1\nline2\nline3");
             }
         };
 

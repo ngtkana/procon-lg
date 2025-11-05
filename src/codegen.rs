@@ -15,7 +15,7 @@ impl CodeGenerator {
     /// Generate helper macros for multiline print support
     fn generate_helper_macros() -> proc_macro2::TokenStream {
         quote! {
-            macro_rules! __lg_print_multiline {
+            macro_rules! __lg_print {
                 ($print_macro:ident, $level:expr, $($args:tt)*) => {
                     {
                         let __lg_formatted = format!($($args)*);
@@ -29,7 +29,7 @@ impl CodeGenerator {
                 };
             }
 
-            macro_rules! __lg_print_multiline_no_newline {
+            macro_rules! __lg_print_no_newline {
                 ($print_macro:ident, $level:expr, $($args:tt)*) => {
                     {
                         let __lg_formatted = format!($($args)*);

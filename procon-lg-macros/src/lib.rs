@@ -3,15 +3,15 @@
 //! A procedural macro library for debugging recursive functions in competitive programming
 
 mod arg_attrs;
-mod args;
 mod codegen;
+mod macro_args;
 mod visitor;
 
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, ItemFn};
 
-use args::MacroArgs;
 use codegen::CodeGenerator;
+use macro_args::MacroArgs;
 
 /// A procedural macro for logging recursive function calls
 ///

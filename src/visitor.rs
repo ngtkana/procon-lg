@@ -60,7 +60,7 @@ fn transform_println_macro(tokens: &proc_macro2::TokenStream) -> syn::Macro {
         }
     } else {
         syn::parse_quote! {
-            __lg_print_multiline!(println, __lg_recur_level, #tokens)
+            __lg_print!(println, __lg_recur_level, #tokens)
         }
     }
 }
@@ -73,7 +73,7 @@ fn transform_eprintln_macro(tokens: &proc_macro2::TokenStream) -> syn::Macro {
         }
     } else {
         syn::parse_quote! {
-            __lg_print_multiline!(eprintln, __lg_recur_level, #tokens)
+            __lg_print!(eprintln, __lg_recur_level, #tokens)
         }
     }
 }
@@ -86,7 +86,7 @@ fn transform_print_macro(tokens: &proc_macro2::TokenStream) -> syn::Macro {
         }
     } else {
         syn::parse_quote! {
-            __lg_print_multiline_no_newline!(print, __lg_recur_level, #tokens)
+            __lg_print_no_newline!(print, __lg_recur_level, #tokens)
         }
     }
 }
@@ -99,7 +99,7 @@ fn transform_eprint_macro(tokens: &proc_macro2::TokenStream) -> syn::Macro {
         }
     } else {
         syn::parse_quote! {
-            __lg_print_multiline_no_newline!(eprint, __lg_recur_level, #tokens)
+            __lg_print_no_newline!(eprint, __lg_recur_level, #tokens)
         }
     }
 }
@@ -162,7 +162,7 @@ mod tests {
 
         let expected: Block = parse_quote! {
             {
-                __lg_print_multiline!(println, __lg_recur_level, "computing value for {}", n);
+                __lg_print!(println, __lg_recur_level, "computing value for {}", n);
                 let result = 42;
                 println!("{}", "│".repeat(__lg_recur_level + 1));
                 result
@@ -173,7 +173,7 @@ mod tests {
     }
 
     #[test]
-    fn test_multiline_println() {
+    fn test_println() {
         let mut visitor = Visitor {
             fn_name: &parse_quote!(test_fn),
         };
@@ -188,7 +188,7 @@ mod tests {
 
         let expected: Block = parse_quote! {
             {
-                __lg_print_multiline!(println, __lg_recur_level, "line1\nline2\nline3");
+                __lg_print!(println, __lg_recur_level, "line1\nline2\nline3");
             }
         };
 
