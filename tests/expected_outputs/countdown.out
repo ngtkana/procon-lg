@@ -1,17 +1,12 @@
 countdown(count:3)
-│count = 3 (println)
-│count = 3 (eprintln)
-│count = 3 (print)
-│count = 3 (eprint)
-││├countdown(count:2)
-│││count = 2 (println)
-││count = 2 (eprintln)
-││count = 2 (print)
-││count = 2 (eprint)
-││││├countdown(count:1)
-│││││count = 1 (println)
-│││count = 1 (eprintln)
-│││count = 1 (print)
-│││count = 1 (eprint)
-││││││├countdown(count:0)
-│││││││Bang!
+│ count = 3 (eprintln)
+│ countdown(count:2)
+│ │ count = 2 (eprintln)
+│ │ countdown(count:1)
+│ │ │ count = 1 (eprintln)
+│ │ │ countdown(count:0)
+│ │ │ │ Bang!
+│ │ │ ╵
+│ │ ╵
+│ ╵
+╵

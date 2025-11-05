@@ -3,11 +3,11 @@ use procon_lg::lg_recur;
 #[lg_recur]
 fn test_multiline(#[show] n: u32) {
     if n == 0 {
-        println!("Single line");
-        println!("Line 1\nLine 2\nLine 3");
-        println!("Another single line");
+        eprintln!("Single line");
+        eprintln!("Line 1\nLine 2\nLine 3");
+        eprintln!("Another single line");
     } else {
-        println!("Multi-line at level {n}:\nFirst line\nSecond line");
+        eprintln!("Multi-line at level {n}:\nFirst line\nSecond line");
         test_multiline(n - 1);
     }
 }

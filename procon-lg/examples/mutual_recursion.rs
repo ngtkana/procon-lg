@@ -1,6 +1,6 @@
 use procon_lg::lg_recur;
 
-#[lg_recur]
+#[lg_recur(show_return)]
 fn a(#[show] x: i32) -> i32 {
     eprintln!("Hello from a");
     if x <= 1 {
@@ -10,7 +10,7 @@ fn a(#[show] x: i32) -> i32 {
     }
 }
 
-#[lg_recur]
+#[lg_recur(show_return)]
 fn b(#[show] x: i32) -> i32 {
     eprintln!("Hello from b");
     a(x - 3) + 4

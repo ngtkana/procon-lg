@@ -3,7 +3,7 @@ use procon_lg::lg_recur;
 mod test_module {
     use super::lg_recur;
 
-    #[lg_recur]
+    #[lg_recur(show_return)]
     pub fn public_factorial(#[show] n: u32) -> u32 {
         if n <= 1 {
             1

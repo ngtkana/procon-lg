@@ -1,6 +1,6 @@
 use procon_lg::lg_recur;
 
-#[lg_recur]
+#[lg_recur(show_return)]
 fn sum(#[show] a: &[u32]) -> u32 {
     let n = a.len();
     match n {

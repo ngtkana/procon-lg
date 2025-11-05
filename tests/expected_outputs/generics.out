@@ -1,10 +1,18 @@
 generic_gcd(a:48, b:18)
-│├generic_gcd(a:18, b:12)
-││├generic_gcd(a:12, b:6)
-│││├generic_gcd(a:6, b:0)
+│ generic_gcd(a:18, b:12)
+│ │ generic_gcd(a:12, b:6)
+│ │ │ generic_gcd(a:6, b:0)
+│ │ │ └ return: 6
+│ │ └ return: 6
+│ └ return: 6
+└ return: 6
 6
 generic_gcd(a:48, b:18)
-│├generic_gcd(a:18, b:12)
-││├generic_gcd(a:12, b:6)
-│││├generic_gcd(a:6, b:0)
+│ generic_gcd(a:18, b:12)
+│ │ generic_gcd(a:12, b:6)
+│ │ │ generic_gcd(a:6, b:0)
+│ │ │ └ return: 6
+│ │ └ return: 6
+│ └ return: 6
+└ return: 6
 6

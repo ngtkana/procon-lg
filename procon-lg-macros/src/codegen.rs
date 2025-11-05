@@ -19,10 +19,10 @@ impl CodeGenerator {
                     {
                         let __lg_formatted = format!($($args)*);
                         for __lg_line in __lg_formatted.lines() {
-                            $print_macro!("{}{}", "│".repeat($level + 1), __lg_line);
+                            $print_macro!("{}{}", "│ ".repeat($level), __lg_line);
                         }
                         if __lg_formatted.ends_with('\n') {
-                            $print_macro!("{}", "│".repeat($level + 1));
+                            $print_macro!("{}", "│ ".repeat($level));
                         }
                     }
                 };
@@ -35,13 +35,13 @@ impl CodeGenerator {
                         let __lg_lines: Vec<&str> = __lg_formatted.lines().collect();
                         for (i, __lg_line) in __lg_lines.iter().enumerate() {
                             if i == 0 {
-                                $print_macro!("{}{}", "│".repeat($level + 1), __lg_line);
+                                $print_macro!("{}{}", "│ ".repeat($level), __lg_line);
                             } else {
-                                $print_macro!("\n{}{}", "│".repeat($level + 1), __lg_line);
+                                $print_macro!("\n{}{}", "│ ".repeat($level), __lg_line);
                             }
                         }
                         if __lg_formatted.ends_with('\n') {
-                            $print_macro!("\n{}", "│".repeat($level + 1));
+                            $print_macro!("\n{}", "│ ".repeat($level));
                         }
                     }
                 };
@@ -63,26 +63,21 @@ impl CodeGenerator {
     }
 
     /// Generate return value output
-    fn generate_return_output(&self, fn_return_type: &syn::ReturnType) -> proc_macro2::TokenStream {
+    fn generate_return_output(&self) -> proc_macro2::TokenStream {
         if self.macro_args.show_return {
-            match fn_return_type {
-                syn::ReturnType::Default => {
-                    // No return type specified (unit type)
-                    quote! {}
-                }
-                syn::ReturnType::Type(_, _) => {
-                    quote! {
-                        eprintln!(
-                            "{}└return: {:?}",
-                            "│".repeat(__procon_lg_depth_guard.current_depth()),
-                            ans
-                        );
-                    }
-                }
+            quote! {
+                eprintln!(
+                    "{}└ return: {:?}",
+                    "│ ".repeat(__procon_lg_depth_guard.current_depth()),
+                    ans
+                );
             }
         } else {
             quote! {
-                // Return value output is disabled by default
+                eprintln!(
+                    "{}╵",
+                    "│ ".repeat(__procon_lg_depth_guard.current_depth()),
+                );
             }
         }
     }
@@ -135,7 +130,7 @@ impl CodeGenerator {
         // Generate code components
         let helper_macros = Self::generate_helper_macros();
         let recursion_check = self.generate_recursion_check(fn_name);
-        let return_output = self.generate_return_output(fn_return_type);
+        let return_output = self.generate_return_output();
         let arg_format_exprs = self.generate_arg_format_expressions();
 
         quote! {
@@ -150,16 +145,12 @@ impl CodeGenerator {
                 let mut args_str = String::new();
                 #(#arg_format_exprs)*
 
-                if __procon_lg_depth_guard.current_depth() == 0 {
-                    eprintln!("{}({})", stringify!(#fn_name), args_str);
-                } else {
-                    eprintln!(
-                        "{}├{}({})",
-                        "│".repeat(__procon_lg_depth_guard.current_depth()),
-                        stringify!(#fn_name),
-                        args_str
-                    );
-                }
+                eprintln!(
+                    "{}{}({})",
+                    "│ ".repeat(__procon_lg_depth_guard.current_depth()),
+                    stringify!(#fn_name),
+                    args_str
+                );
 
                 let ans = #fn_block;
 

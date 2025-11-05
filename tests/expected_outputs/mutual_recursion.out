@@ -1,9 +1,13 @@
 b(x:5)
-│Hello from b
-│├a(x:2)
-││Hello from a
-││├b(x:4)
-│││Hello from b
-│││├a(x:1)
-││││Hello from a
+│ Hello from b
+│ a(x:2)
+│ │ Hello from a
+│ │ b(x:4)
+│ │ │ Hello from b
+│ │ │ a(x:1)
+│ │ │ │ Hello from a
+│ │ │ └ return: 1
+│ │ └ return: 5
+│ └ return: 5
+└ return: 9
 9

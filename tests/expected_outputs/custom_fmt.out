@@ -1,12 +1,18 @@
 traversal(root:2, code:1)
-│├traversal(root:0, code:10)
-││Hi!
-││├traversal(root:1, code:101)
-│││Hi!
-│Hi!
-│├traversal(root:3, code:11)
-││Hi!
-││├traversal(root:5, code:111)
-│││├traversal(root:4, code:1110)
-││││Hi!
-│││Hi!
+│ traversal(root:0, code:10)
+│ │ Hi!
+│ │ traversal(root:1, code:101)
+│ │ │ Hi!
+│ │ ╵
+│ ╵
+│ Hi!
+│ traversal(root:3, code:11)
+│ │ Hi!
+│ │ traversal(root:5, code:111)
+│ │ │ traversal(root:4, code:1110)
+│ │ │ │ Hi!
+│ │ │ ╵
+│ │ │ Hi!
+│ │ ╵
+│ ╵
+╵

@@ -1,5 +1,9 @@
 countdown()
-│├countdown()
-││├countdown()
-│││├countdown()
-││││Bang!
+│ countdown()
+│ │ countdown()
+│ │ │ countdown()
+│ │ │ │ Bang!
+│ │ │ ╵
+│ │ ╵
+│ ╵
+╵

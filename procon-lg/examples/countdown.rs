@@ -3,12 +3,9 @@ use procon_lg::lg_recur;
 #[lg_recur]
 fn countdown(#[show] count: u32) {
     if count == 0 {
-        println!("Bang!");
+        eprintln!("Bang!");
     } else {
-        println!("count = {count} (println)");
         eprintln!("count = {count} (eprintln)");
-        print!("count = {count} (print)\n");
-        eprint!("count = {count} (eprint)\n");
         countdown(count - 1);
     }
 }

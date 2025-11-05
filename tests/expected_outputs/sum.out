@@ -1,14 +1,27 @@
 sum(a:[5, 2, 6, 3, 6, 3, 9])
-│├sum(a:[5, 2, 6])
-││├sum(a:[5])
-││├sum(a:[2, 6])
-│││├sum(a:[2])
-│││├sum(a:[6])
-│├sum(a:[3, 6, 3, 9])
-││├sum(a:[3, 6])
-│││├sum(a:[3])
-│││├sum(a:[6])
-││├sum(a:[3, 9])
-│││├sum(a:[3])
-│││├sum(a:[9])
+│ sum(a:[5, 2, 6])
+│ │ sum(a:[5])
+│ │ └ return: 5
+│ │ sum(a:[2, 6])
+│ │ │ sum(a:[2])
+│ │ │ └ return: 2
+│ │ │ sum(a:[6])
+│ │ │ └ return: 6
+│ │ └ return: 8
+│ └ return: 13
+│ sum(a:[3, 6, 3, 9])
+│ │ sum(a:[3, 6])
+│ │ │ sum(a:[3])
+│ │ │ └ return: 3
+│ │ │ sum(a:[6])
+│ │ │ └ return: 6
+│ │ └ return: 9
+│ │ sum(a:[3, 9])
+│ │ │ sum(a:[3])
+│ │ │ └ return: 3
+│ │ │ sum(a:[9])
+│ │ │ └ return: 9
+│ │ └ return: 12
+│ └ return: 21
+└ return: 34
 34

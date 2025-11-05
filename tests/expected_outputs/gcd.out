@@ -1,5 +1,9 @@
 gcd(x:15, y:42)
-│├gcd(x:15, y:12)
-││├gcd(x:12, y:3)
-│││├gcd(x:3, y:0)
+│ gcd(x:15, y:12)
+│ │ gcd(x:12, y:3)
+│ │ │ gcd(x:3, y:0)
+│ │ │ └ return: 3
+│ │ └ return: 3
+│ └ return: 3
+└ return: 3
 3

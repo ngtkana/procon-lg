@@ -1,6 +1,6 @@
 use procon_lg::lg_recur;
 
-#[lg_recur]
+#[lg_recur(show_return)]
 fn fib(#[show] n: u32) -> u32 {
     if n <= 1 {
         1

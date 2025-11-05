@@ -1,4 +1,8 @@
 countdown_limited(n:3)
-│├countdown_limited(n:2)
-││├countdown_limited(n:1)
-│││├countdown_limited(n:0)
+│ countdown_limited(n:2)
+│ │ countdown_limited(n:1)
+│ │ │ countdown_limited(n:0)
+│ │ │ ╵
+│ │ ╵
+│ ╵
+╵

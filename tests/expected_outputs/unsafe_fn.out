@@ -1,7 +1,13 @@
 unsafe_sum(len:5)
-│├unsafe_sum(len:4)
-││├unsafe_sum(len:3)
-│││├unsafe_sum(len:2)
-││││├unsafe_sum(len:1)
-│││││├unsafe_sum(len:0)
+│ unsafe_sum(len:4)
+│ │ unsafe_sum(len:3)
+│ │ │ unsafe_sum(len:2)
+│ │ │ │ unsafe_sum(len:1)
+│ │ │ │ │ unsafe_sum(len:0)
+│ │ │ │ │ └ return: 0
+│ │ │ │ └ return: 5
+│ │ │ └ return: 9
+│ │ └ return: 12
+│ └ return: 14
+└ return: 15
 15

@@ -4,7 +4,7 @@ use procon_lg::lg_recur;
 fn countdown(x: *const i32) {
     unsafe {
         if *x == 0 {
-            println!("Bang!");
+            eprintln!("Bang!");
         } else {
             let x = *x - 1;
             let x = &x;

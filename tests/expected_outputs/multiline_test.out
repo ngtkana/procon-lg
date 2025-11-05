@@ -1,14 +1,17 @@
 test_multiline(n:2)
-│Multi-line at level 2:
-│First line
-│Second line
-│├test_multiline(n:1)
-││Multi-line at level 1:
-││First line
-││Second line
-││├test_multiline(n:0)
-│││Single line
-│││Line 1
-│││Line 2
-│││Line 3
-│││Another single line
+│ Multi-line at level 2:
+│ First line
+│ Second line
+│ test_multiline(n:1)
+│ │ Multi-line at level 1:
+│ │ First line
+│ │ Second line
+│ │ test_multiline(n:0)
+│ │ │ Single line
+│ │ │ Line 1
+│ │ │ Line 2
+│ │ │ Line 3
+│ │ │ Another single line
+│ │ ╵
+│ ╵
+╵
