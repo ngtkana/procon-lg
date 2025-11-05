@@ -2,11 +2,11 @@ test_multiline(n:2)
 │Multi-line at level 2:
 │First line
 │Second line
-├┬(n:1)
+│├test_multiline(n:1)
 ││Multi-line at level 1:
 ││First line
 ││Second line
-│├┬(n:0)
+││├test_multiline(n:0)
 │││Single line
 │││Line 1
 │││Line 2

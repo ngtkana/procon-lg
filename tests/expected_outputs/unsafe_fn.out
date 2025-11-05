@@ -1,9 +1,9 @@
 unsafe_sum(len:5)
-├┬(len:4)
-│├┬(len:3)
-││├┬(len:2)
-│││├┬(len:1)
-││││├┬(len:0)
+│├unsafe_sum(len:4)
+││├unsafe_sum(len:3)
+│││├unsafe_sum(len:2)
+││││├unsafe_sum(len:1)
+│││││├unsafe_sum(len:0)
 │││││└ 0
 ││││└ 5
 │││└ 9

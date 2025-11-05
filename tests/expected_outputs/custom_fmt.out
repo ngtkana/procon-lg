@@ -1,12 +1,12 @@
 traversal(2, code:1)
-├┬(0, code:10)
+│├traversal(0, code:10)
 ││Hi!
-│├┬(1, code:101)
+││├traversal(1, code:101)
 │││Hi!
 │Hi!
-├┬(3, code:11)
+│├traversal(3, code:11)
 ││Hi!
-│├┬(5, code:111)
-││├┬(4, code:1110)
+││├traversal(5, code:111)
+│││├traversal(4, code:1110)
 ││││Hi!
 │││Hi!

@@ -105,7 +105,7 @@ log_success() {
 # Function to build examples
 build_examples() {
     log_info "Building examples..."
-    if ! cargo build --examples --quiet; then
+    if ! cargo build --examples -p procon-lg --quiet; then
         log_error "Failed to build examples"
         exit 1
     fi

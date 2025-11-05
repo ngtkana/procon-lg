@@ -1,12 +1,8 @@
-[package]
-name = "procon-lg"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+members = ["procon-lg", "procon-lg-macros"]
+resolver = "2"
 
-[lib]
-proc-macro = true
-
-[dependencies]
+[workspace.dependencies]
 proc-macro2 = "1"
 quote = "1"
 syn = { version = "2", features = ["full", "visit-mut"] }
