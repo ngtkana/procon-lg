@@ -4,6 +4,7 @@ use syn::parse::Parse;
 #[derive(Default)]
 pub struct MacroArgs {
     pub recursion_limit: Option<usize>,
+    pub show_return: bool,
 }
 
 impl Parse for MacroArgs {
@@ -25,6 +26,9 @@ impl Parse for MacroArgs {
                         ));
                     }
                     args.recursion_limit = Some(limit_value);
+                }
+                "show_return" => {
+                    args.show_return = true;
                 }
                 _ => return Err(syn::Error::new(ident.span(), "unknown argument")),
             }

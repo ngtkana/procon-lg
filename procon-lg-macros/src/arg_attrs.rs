@@ -1,4 +1,3 @@
-use proc_macro2::TokenStream;
 use syn::{Attribute, Expr};
 
 /// Represents different types of argument attributes
@@ -50,25 +49,6 @@ impl ArgAttributes {
             }
         })
     }
-
-    /// Generate format tokens for this argument
-    pub fn generate_format_tokens(
-        &self,
-        arg_name: &syn::Ident,
-        arg_type: &syn::Type,
-    ) -> TokenStream {
-        if let Some(formatter) = self.get_custom_formatter() {
-            // Create a closure that wraps the formatter expression
-            // The closure parameter should be a reference to the type
-            quote::quote! {
-                (|#arg_name: &#arg_type| #formatter)(&#arg_name)
-            }
-        } else {
-            quote::quote! {
-                format!("{:?}", #arg_name)
-            }
-        }
-    }
 }
 
 #[cfg(test)]
@@ -80,39 +60,24 @@ mod tests {
     fn test_show_with_expression() {
         let attr: Attribute = parse_quote!(#[show(format!("0x{:x}", value))]);
         let attrs = ArgAttributes::from_attrs(&[attr]);
-        let value_: syn::Ident = parse_quote!(value);
-        let value_type: syn::Type = parse_quote!(i32);
-        let result = attrs.generate_format_tokens(&value_, &value_type);
-        let expected = quote::quote! {
-            (|value: &i32| format!("0x{:x}", value))(&value)
-        };
-        assert_eq!(result.to_string(), expected.to_string());
+        assert!(attrs.should_print());
+        assert!(attrs.get_custom_formatter().is_some());
     }
 
     #[test]
     fn test_show_with_field_access() {
         let attr: Attribute = parse_quote!(#[show(node.key)]);
         let attrs = ArgAttributes::from_attrs(&[attr]);
-        let node_: syn::Ident = parse_quote!(node);
-        let node_type: syn::Type = parse_quote!(&Node);
-        let result = attrs.generate_format_tokens(&node_, &node_type);
-        let expected = quote::quote! {
-            (|node: & & Node| node.key)(&node)
-        };
-        assert_eq!(result.to_string(), expected.to_string());
+        assert!(attrs.should_print());
+        assert!(attrs.get_custom_formatter().is_some());
     }
 
     #[test]
     fn test_basic_show() {
         let attr: Attribute = parse_quote!(#[show]);
         let attrs = ArgAttributes::from_attrs(&[attr]);
-        let value_: syn::Ident = parse_quote!(value);
-        let value_type: syn::Type = parse_quote!(i32);
-        let result = attrs.generate_format_tokens(&value_, &value_type);
-        let expected: TokenStream = quote::quote! {
-            format!("{:?}", value)
-        };
-        assert_eq!(result.to_string(), expected.to_string());
+        assert!(attrs.should_print());
+        assert!(attrs.get_custom_formatter().is_none());
     }
 
     #[test]

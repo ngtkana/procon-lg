@@ -1,0 +1,27 @@
+new(value:42)
+└return: TestStruct { value: 42 }
+=== Testing method calls ===
+method_ref(self:TestStruct { value: 42 }, addend:10)
+└return: 52
+method_ref result: 52
+method_mut_ref(self:TestStruct { value: 42 }, new_value:100)
+└return: 42
+method_mut_ref old_value: 42
+new(value:5)
+└return: TestStruct { value: 5 }
+method_owned(self:TestStruct { value: 5 }, multiplier:3)
+method_owned result: 15
+
+=== Testing recursive method ===
+recursive_countdown(self:TestStruct { value: 100 }, count:3)
+│count = 3, value = 100
+│├recursive_countdown(self:TestStruct { value: 100 }, count:2)
+││count = 2, value = 100
+││├recursive_countdown(self:TestStruct { value: 100 }, count:1)
+│││count = 1, value = 100
+│││├recursive_countdown(self:TestStruct { value: 100 }, count:0)
+
+=== Testing mutability patterns ===
+test_mutability_patterns(owned:5, immutable_ref:10, mutable_ref:20, mutable_binding:7)
+└return: 60
+Final result: 60, x: 10, y: 21, z: 60

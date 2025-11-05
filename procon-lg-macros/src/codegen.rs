@@ -63,10 +63,27 @@ impl CodeGenerator {
     }
 
     /// Generate return value output
-    fn generate_return_output(_fn_return_type: &syn::ReturnType) -> proc_macro2::TokenStream {
-        // New behavior: return value is never shown by default
-        quote! {
-            // Return value output is disabled by default
+    fn generate_return_output(&self, fn_return_type: &syn::ReturnType) -> proc_macro2::TokenStream {
+        if self.macro_args.show_return {
+            match fn_return_type {
+                syn::ReturnType::Default => {
+                    // No return type specified (unit type)
+                    quote! {}
+                }
+                syn::ReturnType::Type(_, _) => {
+                    quote! {
+                        eprintln!(
+                            "{}└return: {:?}",
+                            "│".repeat(__procon_lg_depth_guard.current_depth()),
+                            ans
+                        );
+                    }
+                }
+            }
+        } else {
+            quote! {
+                // Return value output is disabled by default
+            }
         }
     }
 
@@ -76,9 +93,17 @@ impl CodeGenerator {
 
         printable_args
             .iter()
-            .map(|(ident, arg_type, attrs)| {
-                let format_expr = attrs.generate_format_tokens(ident, arg_type);
-                let arg_name_str = ident.to_string();
+            .map(|(ident_token, type_token, attrs)| {
+                let format_expr = if let Some(formatter) = attrs.get_custom_formatter() {
+                    quote! {
+                        (|x: &#type_token| #formatter)(&#ident_token)
+                    }
+                } else {
+                    quote! {
+                        format!("{:?}", #ident_token)
+                    }
+                };
+                let arg_name_str = ident_token.to_string();
                 quote! {
                     if !args_str.is_empty() {
                         args_str.push_str(", ");
@@ -110,7 +135,7 @@ impl CodeGenerator {
         // Generate code components
         let helper_macros = Self::generate_helper_macros();
         let recursion_check = self.generate_recursion_check(fn_name);
-        let return_output = Self::generate_return_output(fn_return_type);
+        let return_output = self.generate_return_output(fn_return_type);
         let arg_format_exprs = self.generate_arg_format_expressions();
 
         quote! {
@@ -146,25 +171,52 @@ impl CodeGenerator {
     }
 
     /// Extract arguments for debug output with their formatting information
-    fn extract_printable_args(&self) -> Vec<(&syn::Ident, &syn::Type, ArgAttributes)> {
+    fn extract_printable_args(
+        &self,
+    ) -> Vec<(
+        proc_macro2::TokenStream,
+        proc_macro2::TokenStream,
+        ArgAttributes,
+    )> {
         self.input_fn
             .sig
             .inputs
             .iter()
-            .filter_map(|arg| {
-                if let FnArg::Typed(pat_type) = arg {
+            .filter_map(|arg| match arg {
+                FnArg::Receiver(receiver) => {
+                    let arg_attrs = ArgAttributes::from_attrs(&receiver.attrs);
+                    if arg_attrs.should_print() {
+                        let self_token = quote! { self };
+                        let self_type = if receiver.mutability.is_some() {
+                            if receiver.reference.is_some() {
+                                quote! { &mut Self }
+                            } else {
+                                quote! { Self }
+                            }
+                        } else if receiver.reference.is_some() {
+                            quote! { &Self }
+                        } else {
+                            quote! { Self }
+                        };
+                        Some((self_token, self_type, arg_attrs))
+                    } else {
+                        None
+                    }
+                }
+                FnArg::Typed(pat_type) => {
                     if let Pat::Ident(PatIdent { ident, .. }) = &*pat_type.pat {
                         let arg_attrs = ArgAttributes::from_attrs(&pat_type.attrs);
                         if arg_attrs.should_print() {
-                            Some((ident, &*pat_type.ty, arg_attrs))
+                            let ident_token = quote! { #ident };
+                            let type_ref = &*pat_type.ty;
+                            let type_token = quote! { #type_ref };
+                            Some((ident_token, type_token, arg_attrs))
                         } else {
                             None
                         }
                     } else {
                         None
                     }
-                } else {
-                    None
                 }
             })
             .collect()
@@ -176,14 +228,18 @@ impl CodeGenerator {
             .sig
             .inputs
             .iter()
-            .map(|arg| {
-                if let FnArg::Typed(pat_type) = arg {
+            .map(|arg| match arg {
+                FnArg::Receiver(receiver) => {
+                    let mut new_receiver = receiver.clone();
+                    // Remove custom attributes (show)
+                    new_receiver.attrs.retain(|attr| !is_custom_attr(attr));
+                    FnArg::Receiver(new_receiver)
+                }
+                FnArg::Typed(pat_type) => {
                     let mut new_pat_type = pat_type.clone();
                     // Remove custom attributes (show)
                     new_pat_type.attrs.retain(|attr| !is_custom_attr(attr));
                     FnArg::Typed(new_pat_type)
-                } else {
-                    arg.clone()
                 }
             })
             .collect()
