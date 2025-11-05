@@ -34,6 +34,29 @@ fn fibonacci(n: u32) -> u32 {
 }
 ```
 
+### Early Return Support
+
+The macro supports early returns in recursive functions:
+
+```rust
+#[lg_recur(show_return)]
+fn binary_search(arr: &[i32], target: i32, left: usize, right: usize) -> Option<usize> {
+    if left > right {
+        return None; // early return - logged automatically
+    }
+
+    let mid = left + (right - left) / 2;
+
+    if arr[mid] == target {
+        return Some(mid); // early return - logged automatically
+    } else if arr[mid] < target {
+        binary_search(arr, target, mid + 1, right)
+    } else {
+        binary_search(arr, target, left, mid - 1)
+    }
+}
+```
+
 ## Running Tests
 
 ```bash
