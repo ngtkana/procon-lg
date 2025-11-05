@@ -1,0 +1,13 @@
+b(x:5)
+│Hello from b
+a(x:2)
+│Hello from a
+b(x:4)
+│Hello from b
+a(x:1)
+│Hello from a
+└ 1
+└ 5
+└ 5
+└ 9
+9
